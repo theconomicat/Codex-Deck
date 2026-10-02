@@ -19,21 +19,20 @@ func readerFindsLatestRateLimitSnapshot() throws {
     try "\(first)\n\(second)\n".write(to: log, atomically: true, encoding: .utf8)
 
     let snapshot = try CodexUsageReader().latestSnapshot(
-        codexDirectory: root,
-        now: Date(timeIntervalSince1970: 1_781_171_000)
+        codexDirectory: root
     )
 
-    #expect(snapshot.primary.usedPercent == 18.0)
-    #expect(snapshot.secondary.usedPercent == 4.0)
-    #expect(snapshot.primary.windowMinutes == 300)
-    #expect(snapshot.secondary.windowMinutes == 10080)
+    #expect(snapshot.primary?.usedPercent == 18.0)
+    #expect(snapshot.secondary?.usedPercent == 4.0)
+    #expect(snapshot.primary?.windowMinutes == 300)
+    #expect(snapshot.secondary?.windowMinutes == 10080)
     #expect(snapshot.planType == "pro")
 
     try? FileManager.default.removeItem(at: root)
 }
 
 @Test
-func readerResetsExpiredUsageWindowsWithoutNewCodexEvents() throws {
+func readerPreservesExpiredUsageUntilNewCodexEvents() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent("CodexUsageTests-\(UUID().uuidString)", isDirectory: true)
     let sessions = root.appendingPathComponent("sessions/2026/06/11", isDirectory: true)
@@ -46,14 +45,14 @@ func readerResetsExpiredUsageWindowsWithoutNewCodexEvents() throws {
     try "\(event)\n".write(to: log, atomically: true, encoding: .utf8)
 
     let snapshot = try CodexUsageReader().latestSnapshot(
-        codexDirectory: root,
-        now: Date(timeIntervalSince1970: 1_781_172_100)
+        codexDirectory: root
     )
 
-    #expect(snapshot.primary.usedPercent == 0)
-    #expect(snapshot.primary.remainingPercent == 100)
-    #expect(snapshot.primary.resetsAt == Date(timeIntervalSince1970: 1_781_172_012 + 300 * 60))
-    #expect(snapshot.secondary.usedPercent == 4.0)
+    #expect(snapshot.primary?.usedPercent == 82)
+    #expect(snapshot.primary?.remainingPercent == 18)
+    #expect(snapshot.primary?.isExpired(at: Date(timeIntervalSince1970: 1_781_172_100)) == true)
+    #expect(snapshot.primary?.resetsAt == Date(timeIntervalSince1970: 1_781_172_012))
+    #expect(snapshot.secondary?.usedPercent == 4.0)
 
     try? FileManager.default.removeItem(at: root)
 }

@@ -10,7 +10,7 @@ public final class CodexUsageReader: @unchecked Sendable {
         self.decoder.dateDecodingStrategy = .custom(Self.decodeISO8601Date)
     }
 
-    public func latestSnapshot(codexDirectory: URL = defaultCodexDirectory(), now: Date = Date()) throws -> CodexUsageSnapshot {
+    public func latestSnapshot(codexDirectory: URL = defaultCodexDirectory()) throws -> CodexUsageSnapshot {
         var isDirectory: ObjCBool = false
         guard fileManager.fileExists(atPath: codexDirectory.path, isDirectory: &isDirectory), isDirectory.boolValue else {
             throw CodexUsageError.codexDirectoryMissing(codexDirectory)
@@ -29,7 +29,7 @@ public final class CodexUsageReader: @unchecked Sendable {
             throw CodexUsageError.noUsageEventsFound(codexDirectory)
         }
 
-        return latest.normalized(at: now)
+        return latest
     }
 
     public static func defaultCodexDirectory() -> URL {
@@ -122,11 +122,13 @@ private struct CodexEvent: Decodable {
         guard type == "event_msg", payload.type == "token_count", let rateLimits = payload.rateLimits else {
             return nil
         }
+        // Model-specific buckets must not overwrite the account-wide Codex quota.
+        guard rateLimits.limitID == nil || rateLimits.limitID == "codex" else { return nil }
 
         return CodexUsageSnapshot(
             timestamp: timestamp,
-            primary: rateLimits.primary.asUsageWindow,
-            secondary: rateLimits.secondary.asUsageWindow,
+            primary: rateLimits.primary?.asUsageWindow,
+            secondary: rateLimits.secondary?.asUsageWindow,
             planType: rateLimits.planType,
             limitID: rateLimits.limitID
         )
@@ -145,8 +147,8 @@ private struct CodexEvent: Decodable {
 
 private struct RateLimits: Decodable {
     let limitID: String?
-    let primary: RateLimitWindow
-    let secondary: RateLimitWindow
+    let primary: RateLimitWindow?
+    let secondary: RateLimitWindow?
     let planType: String?
 
     enum CodingKeys: String, CodingKey {
@@ -168,8 +170,9 @@ private struct RateLimitWindow: Decodable {
         case resetsAt = "resets_at"
     }
 
-    var asUsageWindow: UsageWindow {
-        UsageWindow(
+    var asUsageWindow: UsageWindow? {
+        guard windowMinutes > 0, usedPercent.isFinite else { return nil }
+        return UsageWindow(
             usedPercent: usedPercent,
             windowMinutes: windowMinutes,
             resetsAt: resetsAt.map { Date(timeIntervalSince1970: $0) }

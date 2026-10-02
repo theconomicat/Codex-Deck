@@ -14,8 +14,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Test
-        run: swift test
+        run: |
+          node --test Tests/DirectSwitching/apply-preset.test.mjs
+          swift test
 
       - name: Build app
         run: ./Scripts/package_app.sh

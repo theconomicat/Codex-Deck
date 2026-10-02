@@ -2,15 +2,15 @@ import Foundation
 
 public struct CodexUsageSnapshot: Equatable, Sendable {
     public let timestamp: Date
-    public let primary: UsageWindow
-    public let secondary: UsageWindow
+    public let primary: UsageWindow?
+    public let secondary: UsageWindow?
     public let planType: String?
     public let limitID: String?
 
     public init(
         timestamp: Date,
-        primary: UsageWindow,
-        secondary: UsageWindow,
+        primary: UsageWindow?,
+        secondary: UsageWindow?,
         planType: String?,
         limitID: String?
     ) {
@@ -21,14 +21,8 @@ public struct CodexUsageSnapshot: Equatable, Sendable {
         self.limitID = limitID
     }
 
-    public func normalized(at now: Date = Date()) -> CodexUsageSnapshot {
-        CodexUsageSnapshot(
-            timestamp: timestamp,
-            primary: primary.normalized(at: now),
-            secondary: secondary.normalized(at: now),
-            planType: planType,
-            limitID: limitID
-        )
+    public var windows: [UsageWindow] {
+        [primary, secondary].compactMap { $0 }.sorted { $0.windowMinutes < $1.windowMinutes }
     }
 }
 
@@ -47,22 +41,15 @@ public struct UsageWindow: Equatable, Sendable {
         max(0, min(100, 100 - usedPercent))
     }
 
-    public func normalized(at now: Date = Date()) -> UsageWindow {
-        guard
-            let resetsAt,
-            windowMinutes > 0,
-            resetsAt <= now
-        else {
-            return self
-        }
+    public func isExpired(at now: Date = Date()) -> Bool {
+        resetsAt.map { $0 <= now } ?? false
+    }
 
-        let windowSeconds = TimeInterval(windowMinutes * 60)
-        let elapsedWindows = floor(now.timeIntervalSince(resetsAt) / windowSeconds) + 1
-        return UsageWindow(
-            usedPercent: 0,
-            windowMinutes: windowMinutes,
-            resetsAt: resetsAt.addingTimeInterval(elapsedWindows * windowSeconds)
-        )
+    public var label: String {
+        if windowMinutes % 10080 == 0 { return "\(windowMinutes / 10080)w" }
+        if windowMinutes % 1440 == 0 { return "\(windowMinutes / 1440)d" }
+        if windowMinutes % 60 == 0 { return "\(windowMinutes / 60)h" }
+        return "\(windowMinutes)m"
     }
 }
 

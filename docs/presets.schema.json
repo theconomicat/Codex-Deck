@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Codex-Usage model presets",
+  "description": "Include slots 1 through 5 exactly once. Legacy 1–3 files are accepted for automatic migration; the app checks slot uniqueness.",
+  "type": "object",
+  "required": [
+    "version",
+    "presets"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "presets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "slot",
+          "model",
+          "effort"
+        ],
+        "properties": {
+          "slot": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Model label shown in Codex's picker. Matching ignores GPT prefix, case, spacing and punctuation; gpt-6-astra and gpt-6.1-sol also match their display names."
+          },
+          "effort": {
+            "enum": [
+              "none",
+              "minimal",
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max",
+              "ultra"
+            ]
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "minItems": 5,
+          "maxItems": 5
+        },
+        {
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "properties": {
+              "slot": {
+                "maximum": 3
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

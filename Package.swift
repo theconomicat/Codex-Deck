@@ -12,13 +12,14 @@ let package = Package(
     ],
     targets: [
         .target(name: "CodexUsageCore"),
+        .target(name: "CodexUsageAutomation", dependencies: ["CodexUsageCore"], resources: [.copy("Resources/apply-preset.js")]),
         .executableTarget(
             name: "CodexUsage",
-            dependencies: ["CodexUsageCore"]
+            dependencies: ["CodexUsageCore", "CodexUsageAutomation"]
         ),
         .testTarget(
             name: "CodexUsageTests",
-            dependencies: ["CodexUsageCore"]
+            dependencies: ["CodexUsageCore", "CodexUsageAutomation"]
         )
     ]
 )

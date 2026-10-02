@@ -1,0 +1,54 @@
+[
+  {
+    "command": "thread1",
+    "key": null
+  },
+  {
+    "command": "thread2",
+    "key": null
+  },
+  {
+    "command": "thread3",
+    "key": null
+  },
+  {
+    "command": "thread4",
+    "key": null
+  },
+  {
+    "command": "thread5",
+    "key": null
+  },
+  {
+    "command": "focusTab1",
+    "key": null
+  },
+  {
+    "command": "focusTab2",
+    "key": null
+  },
+  {
+    "command": "focusTab3",
+    "key": null
+  },
+  {
+    "command": "focusTab4",
+    "key": null
+  },
+  {
+    "command": "focusTab5",
+    "key": null
+  },
+  {
+    "command": "switchToMode1",
+    "key": null
+  },
+  {
+    "command": "switchToMode2",
+    "key": null
+  },
+  {
+    "command": "switchToMode3",
+    "key": null
+  }
+]

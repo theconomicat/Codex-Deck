@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "presets": [
+    {
+      "slot": 1,
+      "model": "GPT-6 Astra",
+      "effort": "ultra"
+    },
+    {
+      "slot": 2,
+      "model": "GPT-6 Astra",
+      "effort": "xhigh"
+    },
+    {
+      "slot": 3,
+      "model": "GPT-6 Astra",
+      "effort": "high"
+    },
+    {
+      "slot": 4,
+      "model": "GPT-6.1 Sol",
+      "effort": "xhigh"
+    },
+    {
+      "slot": 5,
+      "model": "GPT-6.1 Sol",
+      "effort": "high"
+    }
+  ]
+}
