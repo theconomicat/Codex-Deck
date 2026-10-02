@@ -2,8 +2,8 @@
 
 [English](README.md)
 
-Codex의 **남은 사용량**과 **모델 전환 단축키**를 한곳에서 관리하는 macOS 메뉴 막대 앱입니다.
-모델 선택창을 열지 않고 현재 채팅의 모델과 추론 강도를 함께 바꿉니다. Stream Deck 같은 별도 하드웨어는 필요하지 않습니다.
+Codex의 **남은 사용량**, **모델 전환 단축키**, **휴대폰 Web Deck**을 한곳에서 관리하는 macOS 메뉴 막대 앱입니다.
+모델 선택창을 열지 않고 현재 채팅의 모델과 추론 강도를 함께 바꿉니다. 키보드나 같은 Wi-Fi에 연결된 휴대폰 브라우저의 버튼 다섯 개를 사용할 수 있습니다. Stream Deck 같은 별도 하드웨어는 필요하지 않습니다.
 
 ## 화면 예시
 
@@ -18,6 +18,12 @@ Codex의 **남은 사용량**과 **모델 전환 단축키**를 한곳에서 관
 <img src="docs/menu-bar-preview.png" alt="하나의 초록색 게이지로 남은 사용량 94퍼센트를 표시하는 Codex-Usage 메뉴 막대" width="185" />
 
 사용자가 촬영한 주간 한도 화면입니다. 초록색 게이지의 94는 남은 사용량 94%를 뜻하며, 옆의 Codex 아이콘은 Codex 앱 자체의 아이콘입니다. 수치는 로컬 Codex 사용량 기록에 따라 갱신됩니다.
+
+### 휴대폰 Web Deck
+
+<img src="docs/web-deck-mobile.png" alt="Fixture chat — offline UI verification 표시가 있는 오프라인 Web Deck 테스트 화면과 모델 프리셋 버튼 다섯 개" width="320" />
+
+모바일 크기로 촬영한 오프라인 브라우저 테스트 화면입니다. `Fixture chat — offline UI verification`이라는 가상 채팅을 사용하며, 실제 휴대폰에서 실행 중인 Codex를 제어한 사진은 아닙니다.
 
 ---
 
@@ -41,7 +47,7 @@ Codex의 **남은 사용량**과 **모델 전환 단축키**를 한곳에서 관
 ### 앱으로 설치하기
 
 1. [Releases](https://github.com/theconomicat/Codex-Usage/releases)에서 사용할 버전의 `Codex-Usage-macos.zip`을 받습니다.
-   이 안내의 5개 프리셋은 **0.4.0부터**입니다. 공개 릴리즈에 해당 버전이 아직 없다면 아래 소스 빌드를 사용하세요.
+   **Web Deck은 0.6.0부터**, 키보드 프리셋 5개는 0.4.0부터 지원합니다. 공개 릴리즈에 해당 버전이 아직 없다면 아래 소스 빌드를 사용하세요.
 2. ZIP을 풀고 `Codex-Usage.app`을 **응용 프로그램(`/Applications`)**으로 옮깁니다.
 3. 이전 버전이 실행 중이면 메뉴 막대에서 **Quit Codex-Usage**로 종료한 뒤 새 앱을 엽니다.
 4. 메뉴 막대의 Codex-Usage 아이콘을 클릭합니다. 일반 앱처럼 Dock에 창이 계속 표시되지 않는 것이 정상입니다.
@@ -98,6 +104,22 @@ Codex가 이미 연결 모드로 실행 중이면 그대로 사용합니다. 다
 이 경우 작업을 마친 뒤 **Enable Direct Switching…**을 사용하세요. 자동 실행은 보조 앱이 시작될 때 한 번만 시도하며, 사용자가 Codex를 닫아도 계속 다시 열지 않습니다.
 **Open Codex Automatically**를 끄면 사용량 앱만 자동 실행할 수 있습니다. Codex가 이미 열린 상태에서 옵션을 켜도 강제로 재시작하지 않습니다.
 
+### 휴대폰을 Web Deck으로 사용하기
+
+1. Mac에서 **Enable Direct Switching…** 연결을 먼저 완료합니다. Codex 기본 창 하나에서 **저장된 채팅**을 열고 입력창이 보이게 둡니다. Web Deck은 Mac의 다른 앱이 맨 앞에 있어도 사용할 수 있습니다. 키보드 단축키는 계속 Codex가 맨 앞에 있을 때만 작동합니다.
+2. Mac과 휴대폰을 **같은 신뢰할 수 있는 개인 Wi-Fi**에 연결합니다. Mac을 깨어 있는 상태로 두고 Codex-Usage를 실행해 둡니다.
+3. Mac 메뉴에서 **Web Deck… → Start Web Deck**을 누릅니다. 로컬 HTTP 서버가 시작됩니다. 기본값은 꺼짐이며 로그인할 때 자동으로 켜지지 않습니다.
+4. 휴대폰 카메라로 QR 코드를 읽거나 **Copy Pairing Link**로 복사한 전체 링크를 휴대폰 브라우저에서 엽니다. IP 주소만 열면 페이지는 나오지만 기기 연결은 되지 않습니다.
+5. 휴대폰에 표시된 채팅 이름을 확인하고 모델 버튼을 누릅니다. 키보드와 동일한 `presets.json`의 다섯 설정을 사용하며, 모델과 추론 강도의 적용 확인 결과를 표시합니다.
+
+연결 링크는 **5분 동안 유효하며 한 번만 사용**할 수 있습니다. 시간이 지났거나 다른 기기도 연결하려면 **New Pairing Link**를 누르세요. 이미 연결된 기기의 세션은 유지됩니다. 연결된 브라우저 세션은 최대 **8시간** 동안 유효합니다. 연결 링크는 다른 사람에게 공개하지 마세요.
+
+**Disconnect All Devices**는 모든 기기의 세션을 해제하고 새 링크를 만듭니다. **Stop Web Deck**은 서버를 끄고 모든 연결을 해제합니다. 설정 창만 닫으면 서버는 계속 실행됩니다. 보조 앱을 재시작하면 서버와 세션은 복원되지 않으므로 Web Deck을 다시 켜고 연결해야 합니다. 휴대폰의 **Disconnect**로 해당 기기만 연결 해제할 수도 있습니다.
+
+버튼을 누른 사이 Mac의 채팅이나 프리셋이 바뀌면 변경 요청을 거부합니다. 새로고침한 뒤 표시된 채팅을 확인하고 다시 누르세요. 저장되지 않은 새 초안이나 여러 입력창 중 대상이 불분명한 상태는 원격으로 변경할 수 없습니다. 현재 Web Deck은 모델 변경만 지원하며 메시지 전송, 승인 처리, Codex 질문에 답하기는 지원하지 않습니다.
+
+휴대폰 연결은 인터넷 서비스가 아닌 **로컬 네트워크의 HTTP**입니다. 페어링이 통신을 암호화하지는 않으므로 신뢰하는 네트워크에서 사용하고 공유기 포트를 외부로 개방하지 마세요. 자세한 내용은 [보안 설명](SECURITY.md)을 참고하세요. macOS가 요청하면 Codex-Usage의 로컬 네트워크 접근 또는 수신 연결을 허용합니다. 게스트 Wi-Fi나 기기 간 통신 차단 기능이 켜져 있으면 연결되지 않을 수 있습니다. 사설 IPv4 주소(`10.x.x.x`, `172.16–31.x.x`, `192.168.x.x`)가 필요하며, `127.0.0.1`이 표시되면 Mac에서만 접근 가능합니다. Wi-Fi를 바꿨다면 Web Deck을 껐다 켜서 새 주소와 연결 링크를 받으세요.
+
 ### 메뉴 안내
 
 | 메뉴 | 하는 일 |
@@ -107,6 +129,7 @@ Codex가 이미 연결 모드로 실행 중이면 그대로 사용합니다. 다
 | Enable Direct Switching… | Codex 재시작과 직접 전환 연결 설정 |
 | Model Presets → Edit Presets… | 모델·추론 강도를 수정할 JSON 파일 열기 |
 | Model Presets → Reload Presets | 저장된 JSON을 다시 읽어 메뉴 갱신 |
+| Web Deck… | 휴대폰 연결 서버 시작·종료, QR/링크 표시, 연결된 기기 해제 |
 | Launch at Login | 보조 앱의 로그인 시 자동 실행 켜기/끄기 |
 | Open Codex Automatically | 보조 앱 시작 시 Codex를 연결 모드로 열기. 최초 연결 후 사용 가능 |
 | Quit Codex-Usage | 보조 앱 종료. Codex의 디버깅 연결을 닫으려면 Codex도 종료 후 일반 실행하세요. |
@@ -187,14 +210,16 @@ JSON에는 주석이나 마지막 항목 뒤의 쉼표를 넣을 수 없습니�
 게이지는 **사용한 비율이 아닌 남은 비율**을 표시합니다. Codex가 반환한 한도만 보여 줍니다.
 주간 한도만 있으면 `Usage` 한 줄과 게이지 하나를 표시합니다. 여러 한도가 실제로 보고될 때만 기간을 함께 표시해 구분하며, 월간 항목을 고정으로 만들지 않습니다.
 
-- 30초마다 로컬 기록을 확인합니다. **Refresh Usage**로 즉시 새로고침할 수 있습니다.
+- 30초마다 로컬 기록을 확인합니다. **Refresh Usage**로 즉시 새로고침할 수 있습니다. 0.6.0은 파일을 읽은 위치를 기억해 변경 없는 로그는 건너뛰고 추가된 내용만 읽습니다.
 - **Data as of**는 사용량 이벤트가 기록된 시각입니다. 새로고침 버튼을 누른 시각이 아닙니다.
 - 한도의 초기화 시각이 지나도 새 기록이 없으면 `--`를 표시합니다. 임의로 100%로 바꾸지 않습니다.
 - 오래된 값이나 `--`가 보이면 Codex에서 작업한 뒤 새로고침하세요. 새로고침만으로 서버에 사용량을 요청하지는 않습니다.
 
 `~/.codex/sessions/**/*.jsonl`과 `~/.codex/archived_sessions/**/*.jsonl`에서 사용량 이벤트를 찾습니다.
-보조 앱은 `auth.json`, API 키, 브라우저 쿠키, 키체인을 읽지 않으며 텔레메트리나 외부 네트워크 요청을 보내지 않습니다.
-직접 모델 전환 통신은 로컬 디버깅 연결만 사용합니다.
+보조 앱은 `auth.json`, API 키, 기존 브라우저의 쿠키 저장소, 키체인을 읽지 않으며 텔레메트리나 인터넷 서비스로 요청을 보내지 않습니다.
+직접 모델 전환은 같은 Mac의 루프백 디버깅 연결을 사용합니다. 직접 켠 Web Deck은 같은 로컬 네트워크에서 연결된 기기에 웹 화면과 제한된 API를 제공합니다.
+
+사용량 최적화는 프로세스 샘플에서 확인한 전체 파일의 `String.split`/`contains` 반복 작업을 줄입니다. 이 Mac의 로그 261개(353.3 MiB)를 대상으로 한 사용량 리더 단독 벤치마크에서 최초 읽기 시간은 21.933초에서 3.608초로 줄었고, 변경 없는 후속 읽기는 0.024초·0.020초였습니다. 최대 상주 메모리는 236,208,128바이트에서 28,246,016바이트로 줄었습니다. 이는 실행 시간·메모리 측정이며 **배터리 사용 시간이 얼마나 늘었는지 측정한 결과는 아닙니다**. [측정 범위](docs/model-switching.md#usage-reader-optimization)를 참고하세요.
 
 ## 문제 해결
 
@@ -210,6 +235,9 @@ JSON에는 주석이나 마지막 항목 뒤의 쉼표를 넣을 수 없습니�
 | 적용 확인 실패 / 시간 초과 | 전송 전에 현재 모델·강도를 확인하세요. 변경은 됐지만 확인 단계에서 실패했을 수 있습니다. |
 | Presets error | JSON의 따옴표·쉼표·slot 중복·effort 철자를 확인하고 Reload Presets를 누르세요. |
 | 사용량이 오래됐거나 `--` 표시 | Codex의 새 사용량 기록이 필요합니다. 위 사용량 설명을 참고하세요. |
+| 휴대폰에서 Web Deck이 열리지 않음 | 같은 개인 Wi-Fi, Mac 깨어 있음, 서버 실행, macOS 로컬 네트워크·방화벽 허용, Wi-Fi 기기 간 통신 차단 여부를 확인합니다. IP가 바뀌면 서버를 껐다 켜세요. |
+| 휴대폰에서 다시 연결하라고 나옴 | 새 전체 연결 링크를 사용하세요. 링크는 5분·1회, 세션은 최대 8시간이며 서버 종료·재시작·연결 해제로 만료됩니다. |
+| 채팅·프리셋이 변경됐다는 안내 | 새로고침 후 대상을 확인하세요. 저장된 채팅의 입력창 하나를 보이게 두고 Codex의 추가 확인은 Mac에서 완료합니다. |
 
 숫자 단축키가 채팅 이동으로 처리되는 경우, Codex의 해당 이동 기능을 사용하지 않는다면
 [키 바인딩 해제 예제](docs/codex-keybindings.example.json)를 `~/.codex/keybindings.json`에 **기존 항목을 보존하면서 합친 뒤** Codex를 재시작할 수 있습니다.
@@ -219,7 +247,7 @@ JSON에는 주석이나 마지막 항목 뒤의 쉼표를 넣을 수 없습니�
 ## 업데이트와 삭제
 
 **업데이트:** 메뉴에서 Quit Codex-Usage → `/Applications`의 앱 교체 → 새 앱 실행 순서입니다. JSON은 앱 밖에 있어 유지됩니다.
-Codex도 업데이트·재시작했다면 직접 전환 연결을 다시 설정하세요.
+Codex도 업데이트·재시작했다면 직접 전환 연결을 다시 설정하세요. Web Deck은 종료되므로 새 앱에서 다시 켠 뒤 휴대폰도 새로 연결해야 합니다.
 
 **삭제:** Launch at Login과 Open Codex Automatically를 끄고 보조 앱을 종료한 뒤 앱을 휴지통으로 옮깁니다.
 설정도 삭제하려면 `~/Library/Application Support/Codex-Usage` 폴더를 제거합니다.
@@ -229,23 +257,28 @@ Codex도 업데이트·재시작했다면 직접 전환 연결을 다시 설정�
 
 Codex **26.928.31416**에서 **0.3.1의 직접 전환이 실제로 작동한다는 사용자 확인**을 받았습니다(2026-10-02).
 0.4.0은 5개 기본 프리셋과 설정 이전을, 0.5.0은 로그인 시 Codex 자동 실행과 메뉴 정리를 추가합니다.
+0.6.0은 선택적으로 켜는 Web Deck과 사용량 로그의 증분 읽기를 추가합니다. HTTP 서버·브라우저 UI·모델 연결은 격리된 테스트로 확인했으며, 에이전트가 실제 휴대폰에서 Codex까지의 모델 변경을 검증한 것은 아닙니다.
 계정별 Ultra 지원이나 모든 창·입력 상태에서의 동작을 보장하는 것은 아닙니다. 내부 구조를 사용하므로 Codex 업데이트 후 수정이 필요할 수 있습니다.
 [구현과 검증 범위](docs/model-switching.md) · [기여 안내](CONTRIBUTING.md) · [보안](SECURITY.md)
 
 ```bash
 swift test
 node --test Tests/DirectSwitching/apply-preset.test.mjs
+node --test Tests/WebDeck/deck.test.cjs
 swift run CodexUsage --validate-presets presets.example.json
 swift run CodexUsage --print
 swift run CodexUsage --default-presets
 swift run CodexUsage --check-direct-resources
+swift run CodexUsage --check-web-resources
 /Applications/Codex-Usage.app/Contents/MacOS/CodexUsage --startup-status
 ./Scripts/package_app.sh
 ditto -c -k --norsrc --keepParent Codex-Usage.app Codex-Usage-macos.zip
 ```
 
 `--startup-status`는 설치된 앱의 로그인·Codex 자동 실행·최초 연결 설정 상태를 보여 줍니다.
-`--print`는 로컬 사용량, `--default-presets`는 기본 JSON, `--check-direct-resources`는 번들 리소스 상태를 출력합니다.
+`--print`는 로컬 사용량, `--default-presets`는 기본 JSON, `--check-direct-resources`는 전환 스크립트, `--check-web-resources`는 Web Deck 페이지·리소스 상태를 출력합니다.
+실제 Codex에 접근하지 않고 브라우저를 확인하려면 `swift run CodexUsageWebFixture`를 실행하고 출력된 루프백 연결 URL을 여세요. 실제 Web Deck 화면에 `Fixture chat`이라는 테스트 채팅과 메모리에만 저장되는 모델 선택을 제공합니다. 새 연결 링크가 필요하면 테스트 서버를 재시작합니다.
+0.6.0 검증에서 Swift 테스트 60개와 JavaScript 테스트 48개(모델 연결 36개, Web Deck 12개)가 통과했습니다. 오프라인 Chromium에서는 버튼 다섯 개, 키보드·터치, 대상 변경·오프라인·연결 해제 상태를 확인했고, 320/390px 화면에 가로 넘침 없이 버튼 다섯 개가 표시됐습니다. 이 결과가 실제 휴대폰과 Codex 사이의 동작 검증을 대신하지는 않습니다.
 `CODEX_USAGE_OUTPUT_DIR`로 앱 출력 폴더를 지정하거나 `CODEX_USAGE_SIGN_IDENTITY`로 설치된 서명 인증서를 사용할 수 있습니다.
 GitHub에 `v*` 태그를 푸시하면 릴리즈 워크플로가 실행됩니다. 일반 커밋만으로는 릴리즈가 게시되지 않습니다.
 

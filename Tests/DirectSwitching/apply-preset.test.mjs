@@ -25,7 +25,7 @@ function fixture(options = {}) {
     onSelectModel() { throw Error('Do not use the void menu wrapper.'); },
     modelPickerTriggerConfig: {}, models, modelOptions: models.map(model => ({ model })),
     model: 'gpt-6-astra', reasoningEffort: 'xhigh', selectionMode: 'default',
-    onSelectModelOption() { props.selectionMode = 'model'; },
+    onSelectModelOption() { props.selectionMode = 'model'; if (options.selectionChangeChat) owner.memoizedProps.conversationId = 'other-chat'; },
     onBeforeSelectModel() { return options.confirmation !== false; }
   };
   const settings = { model: props.model, reasoningEffort: props.reasoningEffort, isLoading: false };
@@ -36,6 +36,7 @@ function fixture(options = {}) {
       if (options.reject) throw Error('server rejected update');
       if (options.returnFalse) return false;
       if (options.changeChat) owner.memoizedProps.conversationId = 'other-chat';
+      if (options.changeRoute) context.location.href = 'app://-/index.html#/settings';
       if (options.swapDraft) {
         const alternateOwner = { ...owner, alternate: owner };
         owner.alternate = alternateOwner;
@@ -68,7 +69,7 @@ function fixture(options = {}) {
     setTimeout: (fn) => setTimeout(fn, 1)
   });
   vm.runInContext(source, context);
-  return { calls, props, settings, controller, owner, picker, host, trigger, triggers, current, apply: preset => context.applyCodexPreset(preset) };
+  return { calls, props, settings, controller, owner, picker, host, trigger, triggers, current, apply: preset => context.applyCodexPreset(preset), applyRemote: (preset, id) => context.applyCodexPreset(preset, id), deckState: () => context.readCodexDeck() };
 }
 const preset = defaultPresets.find(p => p.slot === 4);
 
@@ -180,4 +181,59 @@ test('custom catalog display names return the verified canonical model ID', asyn
   assert.equal(result.model, 'provider:special-v2');
   assert.equal(result.displayName, 'My Custom Model');
   assert.equal(f.props.model, result.model);
+});
+
+
+test('Web Deck reports only saved chat identity and model selection without requiring focus', () => {
+  const f = fixture({ focus: false });
+  f.owner.memoizedProps.title = 'Fixture chat';
+  f.owner.memoizedProps.messages = ['private transcript must not be returned'];
+  const state = JSON.parse(JSON.stringify(f.deckState()));
+  assert.deepEqual(state, { targetID: 'chat-1', title: 'Fixture chat', model: 'gpt-6-astra', effort: 'xhigh' });
+  assert.equal(f.calls.length, 0);
+});
+
+test('Web Deck applies all five presets to its exact saved target in the background', async () => {
+  const f = fixture({ focus: false });
+  const targetID = f.deckState().targetID;
+  for (const preset of defaultPresets) {
+    const result = await f.applyRemote(preset, targetID);
+    assert.equal(result.effort, preset.effort);
+    assert.equal(f.props.model, result.model);
+  }
+  assert.equal(f.calls.length, 5);
+});
+
+test('Web Deck rejects a stale target before calling the model callback', async () => {
+  const f = fixture({ focus: false });
+  await assert.rejects(f.applyRemote(preset, 'previous-chat'), /no longer active/);
+  assert.equal(f.calls.length, 0);
+});
+
+test('Web Deck rejects drafts for both discovery and mutation', async () => {
+  const f = fixture({ swapDraft: true, focus: false });
+  assert.throws(() => f.deckState(), /saved Codex chat/);
+  await assert.rejects(f.applyRemote(preset, 'chat-1'), /no longer active/);
+  assert.equal(f.calls.length, 0);
+});
+
+test('Web Deck cannot bypass the original model confirmation', async () => {
+  const f = fixture({ focus: false, confirmation: false });
+  await assert.rejects(f.applyRemote(preset, 'chat-1'), /confirmation/);
+  assert.equal(f.calls.length, 0);
+});
+
+test('Web Deck checks the chat again after selecting explicit model mode', async () => {
+  const f = fixture({ focus: false, selectionChangeChat: true });
+  await assert.rejects(f.applyRemote(preset, 'chat-1'), /composer changed/);
+  assert.equal(f.calls.length, 0);
+});
+
+for (const [name, options, message] of [
+  ['chat changes while applying', { changeChat: true }, /composer changed/],
+  ['route changes while applying', { changeRoute: true }, /focus or chat/],
+  ['selection does not retain effort', { noUpdate: true }, /did not retain/]
+]) test(`Web Deck rejects unconfirmed success when ${name}`, async () => {
+  const f = fixture({ ...options, focus: false });
+  await assert.rejects(f.applyRemote(preset, 'chat-1'), message);
 });

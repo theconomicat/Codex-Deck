@@ -1,8 +1,7 @@
 // Calls the active composer's existing selection callback. No menu clicks or
 // transcript reads. Discovery is structural so version-hashed names can change.
-async function applyCodexPreset(preset) {
+function codexComposerRuntime() {
   const fail = message => { throw new Error(message); };
-  const normalize = value => String(value).toLowerCase().replace(/[^\p{L}\p{N}]/gu, '').replace(/^gpt/, '');
   const root = document.getElementById('root');
   const key = root && Object.getOwnPropertyNames(root).find(k => k.startsWith('__reactContainer$'));
   if (!key) fail('Codex did not expose its composer runtime.');
@@ -76,12 +75,23 @@ async function applyCodexPreset(preset) {
     // mounted throughout the change.
     return owners[1];
   };
+  return { locate, dispatcherFor, identityFor };
+}
+
+async function applyCodexPreset(preset, expectedTargetID = null) {
+  const fail = message => { throw new Error(message); };
+  const normalize = value => String(value).toLowerCase().replace(/[^\p{L}\p{N}]/gu, '').replace(/^gpt/, '');
+  const { locate, dispatcherFor, identityFor } = codexComposerRuntime();
   const initial = locate();
   const dispatch = dispatcherFor(initial);
   const identity = identityFor(initial);
+  if (expectedTargetID !== null && (typeof expectedTargetID !== 'string' ||
+      !expectedTargetID.length || identity !== expectedTargetID)) {
+    fail('The selected Web Deck chat is no longer active. Refresh and select it again.');
+  }
   const route = location.href;
   const ensureActive = () => {
-    if (!document.hasFocus() || location.href !== route) fail('Codex changed focus or chat; the preset stopped.');
+    if ((expectedTargetID === null && !document.hasFocus()) || location.href !== route) fail('Codex changed focus or chat; the preset stopped.');
     const active = locate();
     const activeIdentity = identityFor(active);
     const same = typeof identity === 'string' ? activeIdentity === identity :
@@ -113,6 +123,7 @@ async function applyCodexPreset(preset) {
     if (typeof props.onSelectModelOption !== 'function') fail('Codex did not expose explicit model selection.');
     props.onSelectModelOption();
   }
+  ensureActive();
   const changed = props.model !== model || props.reasoningEffort !== preset.effort;
   if (changed) {
     const applied = await dispatch(model, preset.effort);
@@ -127,4 +138,22 @@ async function applyCodexPreset(preset) {
     await new Promise(resolve => setTimeout(resolve, 50));
   }
   fail('Codex accepted the update, but its composer did not retain the full preset.');
+}
+
+// Model-only Web Deck state. No transcript, messages, pending approvals or
+// arbitrary runtime properties are returned to the paired device.
+function readCodexDeck() {
+  const { locate, identityFor } = codexComposerRuntime();
+  const composer = locate();
+  const targetID = identityFor(composer);
+  if (typeof targetID !== 'string' || !targetID.length) {
+    throw new Error('Open a saved Codex chat before using Web Deck.');
+  }
+  const { model, reasoningEffort: effort } = composer.props;
+  if (typeof model !== 'string' || !model.length || typeof effort !== 'string' || !effort.length) {
+    throw new Error('Codex is still loading its model selection.');
+  }
+  const title = composer.owners.map(owner => owner.memoizedProps).find(props =>
+    props?.conversationId === targetID && typeof props.title === 'string' && props.title.length)?.title;
+  return { targetID, title: title ?? 'Current Codex chat', model, effort };
 }

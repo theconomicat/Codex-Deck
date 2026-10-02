@@ -34,11 +34,17 @@ server.on('upgrade', (req, socket) => {
       if (opcode === 8) { socket.end(frame(body, 8)); return; }
       if (opcode !== 1 || mode === 'stall') continue;
       const message = JSON.parse(body.toString());
-      const preset = JSON.parse(message.params.expression.match(/applyCodexPreset\((\{[^}]+\})\)/)[1]);
+      const isDeckState = message.params.expression.includes('return await readCodexDeck();');
+      const args = isDeckState ? [] : JSON.parse(`[${message.params.expression.match(/return await applyCodexPreset\((.+)\);/)[1]}]`);
+      const [preset, targetID] = args;
       const slugs = { 'GPT-6 Astra': 'gpt-6-astra', 'GPT-6.1 Sol': 'gpt-6.1-sol' };
       socket.write(frame(JSON.stringify({ method: 'Runtime.consoleAPICalled', params: {} })));
       let result;
-      if (mode === 'exception') result = { exceptionDetails: { exception: { description: 'Server rejected model settings' } } };
+      if (isDeckState) result = { result: { value: {
+        targetID: mode === 'deck-invalid' ? '' : 'chat-1', title: 'Fixture chat', model: 'gpt-6-astra', effort: 'high'
+      } } };
+      else if (mode === 'deck' && targetID !== 'chat-1') result = { exceptionDetails: { exception: { description: 'The selected Web Deck chat is no longer active.' } } };
+      else if (mode === 'exception') result = { exceptionDetails: { exception: { description: 'Server rejected model settings' } } };
       else if (mode === 'exception-stack') result = { exceptionDetails: { exception: { description: '\n  Error: Open one active Codex chat.\n    at locate (<anonymous>:30:31)\n    at applyCodexPreset (<anonymous>:56:19)' } } };
       else if (mode === 'mismatch') result = { result: { value: { model: 'unexpected-model', displayName: 'Unexpected model', effort: preset.effort, changed: true } } };
       else if (mode === 'effort-mismatch') result = { result: { value: { model: slugs[preset.model] ?? preset.model, displayName: preset.model, effort: preset.effort === 'high' ? 'xhigh' : 'high', changed: true } } };

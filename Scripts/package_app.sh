@@ -9,13 +9,14 @@ APP_DIR="${CODEX_USAGE_OUTPUT_DIR:-$ROOT_DIR}/$APP_NAME.app"
 ICON_PATH="$ROOT_DIR/Assets/AppIcon.icns"
 
 cd "$ROOT_DIR"
-swift build -c release
+swift build -c release --product "$EXEC_NAME"
 
 rm -rf "$APP_DIR"
 mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
 cp "$BUILD_DIR/$EXEC_NAME" "$APP_DIR/Contents/MacOS/$EXEC_NAME"
 cp "$ICON_PATH" "$APP_DIR/Contents/Resources/AppIcon.icns"
 cp -R "$BUILD_DIR/Codex-Usage_CodexUsageAutomation.bundle" "$APP_DIR/Contents/Resources/"
+cp -R "$BUILD_DIR/Codex-Usage_CodexUsageWeb.bundle" "$APP_DIR/Contents/Resources/"
 
 cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -35,11 +36,13 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
   <key>CFBundleIconFile</key>
   <string>AppIcon</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.5.0</string>
+  <string>0.6.0</string>
   <key>CFBundleVersion</key>
-  <string>15</string>
+  <string>16</string>
   <key>LSMinimumSystemVersion</key>
   <string>13.0</string>
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>Connect your phone to Web Deck on your trusted Wi-Fi to change Codex model presets.</string>
   <key>LSUIElement</key>
   <true/>
 </dict>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#141615">
+  <meta name="referrer" content="no-referrer">
+  <title>Codex-Usage Web Deck</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/deck.css">
+  <script src="/deck.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#presets">Skip to model presets</a>
+  <main class="remote">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">C</span><h1>Codex-Usage <span>Web Deck</span></h1></div>
+      <p id="connection" class="connection" role="status"><span class="status-dot" aria-hidden="true"></span><span id="connection-label">Connecting</span></p>
+    </header>
+
+    <section id="pairing" class="pairing" aria-labelledby="pairing-title" hidden>
+      <h2 id="pairing-title">Connect to your Mac</h2>
+      <p>Open <strong>Web Deck</strong> in the Codex-Usage menu on your Mac, then open its pairing link on this device.</p>
+      <p class="secondary">Keep both devices on the same Wi-Fi. A new pairing link is needed when this session expires.</p>
+      <button id="retry-pairing" type="button" class="quiet-button">Check connection</button>
+    </section>
+
+    <div id="deck-content">
+      <section class="target-strip" aria-label="Current Codex chat">
+        <div class="target-copy"><p class="field-label">Active chat</p><p id="target-title" class="target-title">Waiting for Codex…</p></div>
+        <div class="usage-copy"><p class="field-label">Usage</p><p id="usage" class="usage">Waiting for usage…</p></div>
+      </section>
+
+      <section class="deck-section" aria-labelledby="presets-heading">
+        <div class="section-heading"><h2 id="presets-heading">Model presets</h2><button id="refresh" type="button" class="text-button">Refresh</button></div>
+        <div id="presets" class="deck-grid" tabindex="-1" aria-busy="true"></div>
+        <p id="deck-hint" class="deck-hint">Connecting to your Mac…</p>
+      </section>
+
+    </div>
+
+    <p id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+
+    <footer><p>Connected devices control the active chat on your Mac.</p><button id="logout" type="button" class="text-button" hidden>Disconnect this device</button></footer>
+    <noscript><p class="feedback">Enable JavaScript to use the remote.</p></noscript>
+  </main>
+</body>
+</html>

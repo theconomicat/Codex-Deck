@@ -1,6 +1,7 @@
 import AppKit
 import CodexUsageCore
 import CodexUsageAutomation
+import CodexUsageWeb
 import Foundation
 import ServiceManagement
 
@@ -25,6 +26,17 @@ if CommandLine.arguments.contains("--startup-status") {
     print("Open Codex Automatically: \(automatic ? "enabled" : "disabled")")
     print("Direct switching configured: \(configured)")
     exit(0)
+}
+
+if CommandLine.arguments.contains("--check-web-resources") {
+    do {
+        try DeckServer.validateResources()
+        print("Web Deck resources OK")
+        exit(0)
+    } catch {
+        fputs("\(error.localizedDescription)\n", stderr)
+        exit(1)
+    }
 }
 
 if CommandLine.arguments.contains("--check-direct-resources") {
@@ -77,6 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let presets = PresetStore()
     private let hotKeys = ModelHotKeys()
     private let directSetup = DirectSwitchSetup()
+    private let webDeck = WebDeckController()
     private var refreshTimer: Timer?
     private var feedbackTask: Task<Void, Never>?
     private var refreshing = false
@@ -95,12 +108,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.render()
         }
         directSetup.onChange = { [weak self] in self?.render() }
+        webDeck.onChange = { [weak self] in self?.render() }
+        webDeck.server.onState = { [weak self] in
+            guard let self else { throw DeckHTTPError(status: 503, message: "Companion is closing.") }
+            return try await self.deckStateData()
+        }
+        webDeck.server.onPreset = { [weak self] data in
+            guard let self else { throw DeckHTTPError(status: 503, message: "Companion is closing.") }
+            return try await self.applyDeckPreset(data)
+        }
         hotKeys.start()
         refresh()
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in self?.refresh() }
         }
-        if directSetup.port == 0 || CommandLine.arguments.contains("--setup-direct-switching") {
+        refreshTimer?.tolerance = 5
+        if CommandLine.arguments.contains("--web-deck") {
+            webDeck.show()
+        } else if directSetup.port == 0 || CommandLine.arguments.contains("--setup-direct-switching") {
             openDirectSwitching()
         } else {
             Task {
@@ -110,7 +135,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    func applicationWillTerminate(_ notification: Notification) { hotKeys.stop() }
+    func applicationWillTerminate(_ notification: Notification) { hotKeys.stop(); webDeck.stop() }
 
     @objc private func refresh() {
         guard !refreshing else { return }
@@ -195,6 +220,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let presetSettings = NSMenuItem(title: "Model Presets", action: nil, keyEquivalent: "")
         presetSettings.submenu = presetMenu
         menu.addItem(presetSettings)
+        add(menu, webDeck.server.isRunning ? "Web Deck · Running…" : "Web Deck…", #selector(openWebDeck))
         menu.addItem(.separator())
         let launch = add(menu, "Launch at Login", #selector(toggleLaunchAtLogin))
         launch.state = SMAppService.mainApp.status == .enabled ? .on : .off
@@ -273,6 +299,66 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func showPresetError() {
         showAlert("Check presets.json", presets.error ?? "Could not open the presets file.")
+    }
+
+    @objc private func openWebDeck() { webDeck.show() }
+
+    private func deckBridge() throws -> DirectModelSwitcher {
+        guard directSetup.port != 0 else {
+            throw DeckHTTPError(status: 503, message: "On your Mac, choose Enable Direct Switching first.")
+        }
+        guard NSRunningApplication.runningApplications(withBundleIdentifier: ModelHotKeys.codexBundleID)
+            .contains(where: { $0.processIdentifier == directSetup.processIdentifier }) else {
+            throw DeckHTTPError(status: 503, message: "Reconnect Codex with Enable Direct Switching on your Mac.")
+        }
+        return DirectModelSwitcher(port: directSetup.port)
+    }
+
+    private func deckStateData() async throws -> Data {
+        presets.reload()
+        var payload: [String: Any] = [
+            "connected": false, "busy": switching,
+            "presets": presets.configuration.presets.sorted(by: { $0.slot < $1.slot }).map {
+                ["slot": $0.slot, "model": $0.model, "effort": $0.effort.rawValue, "title": $0.title] as [String: Any]
+            }
+        ]
+        if let snapshot = latestSnapshot { payload["usage"] = SnapshotFormatter.textSummary(snapshot) }
+        do {
+            let state = try await deckBridge().deckState()
+            payload["connected"] = true
+            payload["target"] = ["id": state.targetID, "title": state.title]
+            payload["selection"] = ["model": state.model, "effort": state.effort]
+        } catch { payload["message"] = error.localizedDescription }
+        return try JSONSerialization.data(withJSONObject: payload)
+    }
+
+    private struct DeckPresetInput: Decodable {
+        let slot: Int
+        let targetID: String
+        let model: String
+        let effort: String
+    }
+    private func applyDeckPreset(_ data: Data) async throws -> Data {
+        guard let input = try? JSONDecoder().decode(DeckPresetInput.self, from: data), !input.targetID.isEmpty else {
+            throw DeckHTTPError(status: 400, message: "Choose a preset and an active chat.")
+        }
+        guard !switching else { throw DeckHTTPError(status: 409, message: "Another action is in progress. Retry when it finishes.") }
+        presets.reload()
+        guard let preset = presets.configuration.presets.first(where: { $0.slot == input.slot }) else {
+            throw DeckHTTPError(status: 400, message: "This preset is no longer configured. Refresh the deck.")
+        }
+        guard preset.model == input.model, preset.effort.rawValue == input.effort else {
+            throw DeckHTTPError(status: 409, message: "This preset changed on your Mac. Refresh the deck before applying it.")
+        }
+        let bridge = try deckBridge()
+        switching = true
+        defer { switching = false; render() }
+        do {
+            _ = try await bridge.applyRemote(preset, targetID: input.targetID)
+            switchStatus = "Applied: \(preset.title)"
+            showFeedback(preset.title)
+            return try JSONSerialization.data(withJSONObject: ["ok": true, "message": "Applied \(preset.title)"])
+        } catch { throw DeckHTTPError(status: 409, message: error.localizedDescription) }
     }
 
     @objc private func openDirectSwitching() {

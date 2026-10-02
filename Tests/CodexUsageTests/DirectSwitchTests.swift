@@ -68,3 +68,35 @@ func directWebSocketRejectsFailureInsteadOfReportingApplied(_ mode: String) asyn
         }
     }
 }
+
+@Test func deckWebSocketReadsTypedStateAndAppliesExactTarget() async throws {
+    try await withFixture("deck") { port in
+        let switcher = DirectModelSwitcher(port: port)
+        let state = try await switcher.deckState()
+        #expect(state.targetID == "chat-1")
+        #expect(state.title == "Fixture chat")
+        #expect(state.model == "gpt-6-astra")
+        #expect(state.effort == "high")
+        let result = try await switcher.applyRemote(PresetConfiguration.defaults.presets[0], targetID: state.targetID)
+        #expect(result.model == "gpt-6-astra")
+        #expect(result.effort == "ultra")
+        for target in ["previous-chat", "quoted-\"-target\nwith-newline"] {
+            do {
+                _ = try await switcher.applyRemote(PresetConfiguration.defaults.presets[0], targetID: target)
+                Issue.record("A stale Web Deck target was accepted.")
+            } catch {
+                #expect(error.localizedDescription.contains("no longer active"))
+            }
+        }
+    }
+}
+
+@Test func deckWebSocketRejectsMissingIdentityAndInvalidTarget() async throws {
+    try await withFixture("deck-invalid") { port in
+        let switcher = DirectModelSwitcher(port: port)
+        await #expect(throws: DirectSwitchError.self) { try await switcher.deckState() }
+        await #expect(throws: DirectSwitchError.self) {
+            try await switcher.applyRemote(PresetConfiguration.defaults.presets[0], targetID: "")
+        }
+    }
+}

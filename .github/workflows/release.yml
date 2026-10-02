@@ -20,7 +20,7 @@ jobs:
 
       - name: Test
         run: |
-          node --test Tests/DirectSwitching/apply-preset.test.mjs
+          node --test Tests/DirectSwitching/apply-preset.test.mjs Tests/WebDeck/deck.test.cjs
           swift test
 
       - name: Build app

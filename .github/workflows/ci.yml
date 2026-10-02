@@ -16,5 +16,5 @@ jobs:
       - name: Test
         run: |
           swift test
-          node --test Tests/DirectSwitching/apply-preset.test.mjs
+          node --test Tests/DirectSwitching/apply-preset.test.mjs Tests/WebDeck/deck.test.cjs
           swift run CodexUsage --validate-presets presets.example.json

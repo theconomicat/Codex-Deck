@@ -8,6 +8,13 @@ public struct DirectSwitchResult: Codable, Sendable {
     public let changed: Bool
 }
 
+public struct DeckState: Codable, Sendable {
+    public let targetID: String
+    public let title: String
+    public let model: String
+    public let effort: String
+}
+
 public enum DirectSwitchError: LocalizedError {
     case message(String)
     public var errorDescription: String? { switch self { case .message(let value): value } }
@@ -54,9 +61,53 @@ public actor DirectModelSwitcher {
     }
 
     public func apply(_ preset: ModelPreset) async throws -> DirectSwitchResult {
+        try await applyPreset(preset, targetID: nil)
+    }
+
+    /// Uses the same selection callback as a local preset, but requires the
+    /// exact saved chat selected by the paired device instead of keyboard focus.
+    public func applyRemote(_ preset: ModelPreset, targetID: String) async throws -> DirectSwitchResult {
+        guard !targetID.isEmpty, targetID.count <= 512 else {
+            throw DirectSwitchError.message("Select the current Codex chat in Web Deck first.")
+        }
+        return try await applyPreset(preset, targetID: targetID)
+    }
+
+    public func deckState() async throws -> DeckState {
         guard !busy else { throw DirectSwitchError.message("A model change is already in progress.") }
         busy = true
         defer { busy = false }
+        let state: DeckState = try await evaluate(invocation: "readCodexDeck()")
+        guard !state.targetID.isEmpty, !state.model.isEmpty, !state.effort.isEmpty else {
+            throw DirectSwitchError.message("Codex did not expose a saved chat and its model selection.")
+        }
+        return state
+    }
+
+    private func applyPreset(_ preset: ModelPreset, targetID: String?) async throws -> DirectSwitchResult {
+        guard !busy else { throw DirectSwitchError.message("A model change is already in progress.") }
+        busy = true
+        defer { busy = false }
+        let presetJSON = String(decoding: try JSONEncoder().encode(preset), as: UTF8.self)
+        let invocation: String
+        if let targetID {
+            let targetJSON = String(decoding: try JSONEncoder().encode(targetID), as: UTF8.self)
+            invocation = "applyCodexPreset(\(presetJSON), \(targetJSON))"
+        } else {
+            invocation = "applyCodexPreset(\(presetJSON))"
+        }
+        let confirmed: DirectSwitchResult = try await evaluate(invocation: invocation)
+        guard (PickerLabels.model(confirmed.model, matches: preset.model) ||
+               PickerLabels.model(confirmed.displayName, matches: preset.model)),
+              confirmed.effort == preset.effort.rawValue else {
+            throw DirectSwitchError.message("Codex returned a different model or effort.")
+        }
+        return confirmed
+    }
+
+    // Only the fixed operations above can invoke the loopback evaluator. No
+    // expressions, CDP methods or URLs are accepted from a Web Deck request.
+    private func evaluate<Result: Decodable & Sendable>(invocation: String) async throws -> Result {
         guard (1024...65535).contains(port) else { throw DirectSwitchError.message("Invalid direct bridge port.") }
         let url = URL(string: "http://127.0.0.1:\(port)/json/list")!
         var request = URLRequest(url: url)
@@ -78,14 +129,13 @@ public actor DirectModelSwitcher {
             throw DirectSwitchError.message("The direct bridge must stay on its configured local address.")
         }
         let source = try Self.scriptSource()
-        let presetJSON = String(data: try JSONEncoder().encode(preset), encoding: .utf8)!
         let token = UUID().uuidString
         let expression = """
         (() => {
           const pending = globalThis.__codexUsagePending ??= new Map();
           const token = "\(token)";
           const promise = (async () => { \(source)
-            return await applyCodexPreset(\(presetJSON));
+            return await \(invocation);
           })();
           pending.set(token, promise);
           setTimeout(() => pending.delete(token), 10000);
@@ -96,7 +146,7 @@ public actor DirectModelSwitcher {
         let socket = session.webSocketTask(with: socketURL)
         socket.resume()
         defer { socket.cancel(with: .normalClosure, reason: nil) }
-        return try await withThrowingTaskGroup(of: DirectSwitchResult.self) { group in
+        return try await withThrowingTaskGroup(of: Result.self) { group in
             group.addTask {
                 let message: [String: Any] = ["id": 1, "method": "Runtime.evaluate", "params": [
                     "expression": expression, "awaitPromise": true, "returnByValue": true
@@ -133,19 +183,13 @@ public actor DirectModelSwitcher {
                     guard let value = (result["result"] as? [String: Any])?["value"] else {
                         throw DirectSwitchError.message("Codex did not return a confirmed preset.")
                     }
-                    let confirmed = try JSONDecoder().decode(DirectSwitchResult.self, from: JSONSerialization.data(withJSONObject: value))
-                    guard (PickerLabels.model(confirmed.model, matches: preset.model) ||
-                           PickerLabels.model(confirmed.displayName, matches: preset.model)),
-                          confirmed.effort == preset.effort.rawValue else {
-                        throw DirectSwitchError.message("Codex returned a different model or effort.")
-                    }
-                    return confirmed
+                    return try JSONDecoder().decode(Result.self, from: JSONSerialization.data(withJSONObject: value))
                 }
             }
             group.addTask {
                 try await Task.sleep(for: .seconds(8))
                 socket.cancel(with: .goingAway, reason: nil)
-                throw DirectSwitchError.message("The direct model change timed out. Check Codex before retrying.")
+                throw DirectSwitchError.message("The direct bridge request timed out. Check Codex before retrying.")
             }
             defer { group.cancelAll() }
             return try await group.next()!

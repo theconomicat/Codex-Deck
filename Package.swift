@@ -13,13 +13,23 @@ let package = Package(
     targets: [
         .target(name: "CodexUsageCore"),
         .target(name: "CodexUsageAutomation", dependencies: ["CodexUsageCore"], resources: [.copy("Resources/apply-preset.js")]),
+        .target(name: "CodexUsageWeb", resources: [.copy("Resources")]),
         .executableTarget(
             name: "CodexUsage",
-            dependencies: ["CodexUsageCore", "CodexUsageAutomation"]
+            dependencies: ["CodexUsageCore", "CodexUsageAutomation", "CodexUsageWeb"]
+        ),
+        .executableTarget(
+            name: "CodexUsageWebFixture",
+            dependencies: ["CodexUsageCore", "CodexUsageWeb"],
+            path: "Tests/WebDeckFixture"
         ),
         .testTarget(
             name: "CodexUsageTests",
             dependencies: ["CodexUsageCore", "CodexUsageAutomation"]
+        ),
+        .testTarget(
+            name: "CodexUsageWebTests",
+            dependencies: ["CodexUsageWeb"]
         )
     ]
 )
