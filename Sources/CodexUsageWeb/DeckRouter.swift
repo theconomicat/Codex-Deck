@@ -12,6 +12,7 @@ final class DeckRouter {
     var allowedHosts: Set<String> = []
     var onState: (@MainActor () async throws -> Data)?
     var onPreset: (@MainActor (Data) async throws -> Data)?
+    var onControl: (@MainActor (Data) async throws -> Data)?
     var onChange: (@MainActor () -> Void)?
     var staticAssets: [String: (Data, String)] = [:]
     private(set) var pairingToken: String?
@@ -53,7 +54,7 @@ final class DeckRouter {
         if request.method == "GET", let asset = staticAssets[request.path] {
             return DeckHTTPResponse(status: 200, body: asset.0, contentType: asset.1)
         }
-        let routes = ["/api/state": "GET", "/api/pair": "POST", "/api/preset": "POST", "/api/logout": "POST"]
+        let routes = ["/api/state": "GET", "/api/pair": "POST", "/api/preset": "POST", "/api/control": "POST", "/api/logout": "POST"]
         guard let method = routes[request.path] else { return .error(404, "Route not found.") }
         guard request.method == method else { return .error(405, "Method not allowed.") }
         if request.method == "POST" {
@@ -93,6 +94,9 @@ final class DeckRouter {
                 body = try await handler()
             case "/api/preset":
                 guard let handler = onPreset else { return .error(503, "Model switching is not available.") }
+                body = try await handler(request.body)
+            case "/api/control":
+                guard let handler = onControl else { return .error(503, "Deck controls are not available.") }
                 body = try await handler(request.body)
             default:
                 return .error(404, "Route not found.")

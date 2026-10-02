@@ -17,6 +17,10 @@ public final class DeckServer {
         get { router.onPreset }
         set { router.onPreset = newValue }
     }
+    public var onControl: (@MainActor (Data) async throws -> Data)? {
+        get { router.onControl }
+        set { router.onControl = newValue }
+    }
     public var onChange: (@MainActor () -> Void)? {
         get { router.onChange }
         set { router.onChange = newValue }
@@ -152,7 +156,8 @@ public final class DeckServer {
         for (route, filename, type) in [
             ("/", "index.html", "text/html; charset=utf-8"),
             ("/deck.js", "deck.js", "text/javascript; charset=utf-8"),
-            ("/deck.css", "deck.css", "text/css; charset=utf-8")
+            ("/deck.css", "deck.css", "text/css; charset=utf-8"),
+            ("/click.wav", "click.wav", "audio/wav")
         ] {
             guard let url = bundle.url(forResource: filename, withExtension: nil, subdirectory: "Resources") else {
                 throw DeckHTTPError(status: 503, message: "The Web Deck resource is missing. Reinstall Codex-Usage.")

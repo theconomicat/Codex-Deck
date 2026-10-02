@@ -117,6 +117,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self else { throw DeckHTTPError(status: 503, message: "Companion is closing.") }
             return try await self.applyDeckPreset(data)
         }
+        webDeck.server.onControl = { [weak self] data in
+            guard let self else { throw DeckHTTPError(status: 503, message: "Companion is closing.") }
+            return try await self.applyDeckControl(data)
+        }
         hotKeys.start()
         refresh()
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
@@ -338,6 +342,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             payload["connected"] = true
             payload["target"] = ["id": state.targetID, "title": state.title]
             payload["selection"] = ["model": state.model, "effort": state.effort]
+            let extended = try JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any]
+            for key in ["models", "dictation", "pending", "pendingUnavailable"] {
+                payload[key] = extended?[key]
+            }
         } catch { payload["message"] = error.localizedDescription }
         return try JSONSerialization.data(withJSONObject: payload)
     }
@@ -347,6 +355,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let targetID: String
         let model: String
         let effort: String
+    }
+    private func applyDeckControl(_ data: Data) async throws -> Data {
+        let input: DeckControlInput
+        do { input = try DeckControlInput.validated(data) }
+        catch { throw DeckHTTPError(status: 400, message: error.localizedDescription) }
+        guard !switching else { throw DeckHTTPError(status: 409, message: "Another action is in progress. Retry when it finishes.") }
+        let bridge = try deckBridge()
+        switching = true
+        defer { switching = false; render() }
+        do {
+            let result = try await bridge.control(input)
+            return try JSONEncoder().encode(result)
+        } catch {
+            throw DeckHTTPError(status: 409, message: error.localizedDescription)
+        }
     }
     private func applyDeckPreset(_ data: Data) async throws -> Data {
         guard let input = try? JSONDecoder().decode(DeckPresetInput.self, from: data), !input.targetID.isEmpty else {

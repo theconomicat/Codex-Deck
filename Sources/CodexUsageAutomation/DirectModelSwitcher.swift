@@ -13,6 +13,10 @@ public struct DeckState: Codable, Sendable {
     public let title: String
     public let model: String
     public let effort: String
+    public let models: [DeckModel]?
+    public let dictation: DeckDictation?
+    public let pending: [DeckPendingRequest]?
+    public let pendingUnavailable: String?
 }
 
 public enum DirectSwitchError: LocalizedError {
@@ -82,6 +86,19 @@ public actor DirectModelSwitcher {
             throw DirectSwitchError.message("Codex did not expose a saved chat and its model selection.")
         }
         return state
+    }
+
+    public func control(_ input: DeckControlInput) async throws -> DeckControlResult {
+        guard !busy else { throw DirectSwitchError.message("Another deck action is already in progress.") }
+        busy = true
+        defer { busy = false }
+        // Revalidate callers as well as HTTP input. Never interpolate raw text into code.
+        let data = try JSONEncoder().encode(input)
+        _ = try DeckControlInput.validated(data)
+        let json = String(decoding: data, as: UTF8.self)
+        let result: DeckControlResult = try await evaluate(invocation: "performCodexDeckAction(\(json))")
+        guard result.ok else { throw DirectSwitchError.message(result.message ?? "Codex did not confirm this action.") }
+        return result
     }
 
     private func applyPreset(_ preset: ModelPreset, targetID: String?) async throws -> DirectSwitchResult {

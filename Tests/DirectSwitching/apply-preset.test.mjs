@@ -65,11 +65,14 @@ function fixture(options = {}) {
   const context = vm.createContext({
     document: { getElementById: () => root, hasFocus: () => options.focus !== false, querySelectorAll: () => triggers },
     innerWidth: 1200, innerHeight: 800,
+    TextEncoder,
     location: { href: 'app://-/index.html#/threads/chat-1' },
     setTimeout: (fn) => setTimeout(fn, 1)
   });
   vm.runInContext(source, context);
-  return { calls, props, settings, controller, owner, picker, host, trigger, triggers, current, apply: preset => context.applyCodexPreset(preset), applyRemote: (preset, id) => context.applyCodexPreset(preset, id), deckState: () => context.readCodexDeck() };
+  return { calls, props, settings, controller, owner, picker, host, trigger, triggers, current, context,
+    action: input => context.performCodexDeckAction(input),
+    apply: preset => context.applyCodexPreset(preset), applyRemote: (preset, id) => context.applyCodexPreset(preset, id), deckState: () => context.readCodexDeck() };
 }
 const preset = defaultPresets.find(p => p.slot === 4);
 
@@ -184,12 +187,15 @@ test('custom catalog display names return the verified canonical model ID', asyn
 });
 
 
-test('Web Deck reports only saved chat identity and model selection without requiring focus', () => {
+test('Web Deck reports saved chat controls without transcript or private drafts', () => {
   const f = fixture({ focus: false });
   f.owner.memoizedProps.title = 'Fixture chat';
   f.owner.memoizedProps.messages = ['private transcript must not be returned'];
   const state = JSON.parse(JSON.stringify(f.deckState()));
-  assert.deepEqual(state, { targetID: 'chat-1', title: 'Fixture chat', model: 'gpt-6-astra', effort: 'xhigh' });
+  assert.deepEqual(state, { targetID: 'chat-1', title: 'Fixture chat', model: 'gpt-6-astra', effort: 'xhigh',
+    models: [{ id: 'gpt-6-astra', name: 'GPT-6 Astra', efforts: ['ultra', 'xhigh', 'high'] },
+      { id: 'gpt-6.1-sol', name: 'GPT-6.1 Sol', efforts: ['xhigh', 'high'] }],
+    dictation: { available: false, recording: false, owned: false }, pending: [] });
   assert.equal(f.calls.length, 0);
 });
 
@@ -236,4 +242,354 @@ for (const [name, options, message] of [
 ]) test(`Web Deck rejects unconfirmed success when ${name}`, async () => {
   const f = fixture({ ...options, focus: false });
   await assert.rejects(f.applyRemote(preset, 'chat-1'), message);
+});
+
+function pendingFixture(f, type = 'userInput', options = {}) {
+  const calls = [];
+  const question = { id: 'next', question: 'Which task next?', isOther: true, isSecret: false,
+    options: [{ label: 'Build', description: 'Implement the next change' }, { label: 'Review', description: 'Review first' }] };
+  const item = type === 'userInput' ? { requestId: 'request-1', questions: [question] } :
+    type === 'permissionRequest' ? { requestId: 'request-1', reason: 'Read the project?', permissions: { fileSystem: { read: ['/project'] } } } :
+      { approvalRequestId: 'request-1', type: 'exec', cmd: ['git', 'status'], cwd: '/project', approvalReason: 'Inspect repository state?' };
+  const request = { type, item };
+  const panel = { memoizedProps: { conversationId: options.foreign ? 'other-chat' : 'chat-1', pendingRequest: request } };
+  const complete = () => { if (!options.retain) f.picker.sibling = null; };
+  const client = { replyWithUserInputResponse(target, id, response) { calls.push({ target, id, response }); complete(); } };
+  const submit = response => client.replyWithUserInputResponse('chat-1', item.requestId, response);
+  const actions = {
+    onApprove: () => { calls.push('approve'); complete(); },
+    onDeny: () => { calls.push('deny'); complete(); },
+    scopedApproveAction: { onClick: () => { throw new Error('Must never grant session-wide access.'); } }
+  };
+  const controls = { memoizedProps: type === 'userInput' ? { questionAndOptions: [question], onSubmit: submit } : { actions },
+    child: { stateNode: triggerElement(!options.hidden) } };
+  panel.child = controls;
+  f.picker.sibling = panel;
+  return { panel, controls, request, item, question, calls };
+}
+
+function currentAction(f, extra) {
+  const request = f.deckState().pending[0];
+  return { targetID: 'chat-1', type: request.kind, id: request.id, fingerprint: request.fingerprint, ...extra };
+}
+
+function voiceFixture(f, options = {}) {
+  const calls = [];
+  const voice = {
+    isDictating: false, isDictationStarting: false, isTranscribing: false,
+    isMicrophoneBusy: false, isDictationSupported: true, isDictationButtonVisible: true,
+    realtimeSession: { thread: { phase: 'inactive' } },
+    async startDictation(mode) {
+      calls.push(['start', mode]);
+      if (options.delayedStart) setTimeout(() => { voice.isDictating = true; }, 5);
+      else if (!options.noStart) voice.isDictating = true;
+    },
+    async stopDictation(mode) { calls.push(['stop', mode]); if (!options.noStop) voice.isDictating = false; }
+  };
+  f.owner.memoizedProps.voiceControls = voice;
+  const control = { startDictation: mode => voice.startDictation(mode), stopDictation: voice.stopDictation,
+    isVisible: true, disabled: false };
+  const fiber = { memoizedProps: control, child: { stateNode: triggerElement() }, sibling: f.picker };
+  f.owner.child = fiber;
+  return { voice, calls, control, fiber };
+}
+
+test('model dial action reuses exact selection verification', async () => {
+  const f = fixture({ focus: false });
+  const result = await f.action({ type: 'model', targetID: 'chat-1', model: 'gpt-6.1-sol', effort: 'high' });
+  assert.equal(result.ok, true);
+  assert.equal(f.props.reasoningEffort, 'high');
+});
+
+test('catalog excludes disabled and locked choices, and disabled composers expose no choices', () => {
+  const f = fixture();
+  f.props.modelOptions[0].disabledReason = 'unavailable';
+  f.props.lockedModelSlug = 'gpt-6.1-sol';
+  assert.equal(f.deckState().models.length, 0);
+  delete f.props.modelOptions[0].disabledReason;
+  f.props.disabled = true;
+  assert.equal(f.deckState().models.length, 0);
+});
+
+test('questions expose only current prompts, choices and custom-answer rules', () => {
+  const f = fixture();
+  const p = pendingFixture(f);
+  p.controls.memoizedProps.initialDraft = { secret: 'private unsent answer' };
+  const request = f.deckState().pending[0];
+  assert.equal(request.kind, 'question');
+  assert.equal(request.questions[0].allowOther, true);
+  assert.equal(request.questions[0].options[0].id, 'Build');
+  assert.ok(!JSON.stringify(request).includes('private unsent answer'));
+  assert.equal(request.fingerprint, JSON.stringify({ request: Object.fromEntries(Object.entries(request).filter(([key]) => key !== 'fingerprint')), hostID: null }));
+});
+
+test('exact option answers call the native question callback and wait for removal', async () => {
+  const f = fixture({ focus: false });
+  const p = pendingFixture(f);
+  const result = await f.action(currentAction(f, { answers: [{ id: 'next', optionID: 'Review' }] }));
+  assert.equal(result.ok, true);
+  assert.deepEqual(JSON.parse(JSON.stringify(p.calls)), [{ target: 'chat-1', id: 'request-1', response: [{ selectedOptionId: 'Review', freeformText: '' }] }]);
+  assert.equal(f.deckState().pending.length, 0);
+});
+
+test('freeform answers are only accepted for the current freeform-capable questions', async () => {
+  const f = fixture();
+  const p = pendingFixture(f);
+  p.question.isSecret = true;
+  assert.equal(f.deckState().pending[0].questions[0].isSecret, true);
+  const result = await f.action(currentAction(f, { answers: [{ id: 'next', text: '  Another task  ' }] }));
+  assert.equal(result.ok, true);
+  assert.equal(p.calls[0].response[0].freeformText, 'Another task');
+});
+
+for (const [name, publicOptions] of [['empty', []], ['missing', undefined], ['null', null]]) {
+  test(`freeform-only public questions with ${name} options work after Codex's native normalization`, async () => {
+    const f = fixture(); const p = pendingFixture(f);
+    // Static app-shared C6r/T6r normalize this public protocol shape before Gr
+    // receives it. The bridge consumes this committed, already-normalized item.
+    p.question.options = (publicOptions ?? []).map(option => ({ label: option.label, description: option.description }));
+    p.question.isOther = false;
+    assert.equal(f.deckState().pending[0].questions[0].allowOther, true);
+    await f.action(currentAction(f, { answers: [{ id: 'next', text: 'Use the existing implementation.' }] }));
+    assert.equal(p.calls[0].response[0].freeformText, 'Use the existing implementation.');
+  });
+}
+
+for (const [name, mutate] of [
+  ['missing normalized options', p => { delete p.question.options; }],
+  ['null normalized options', p => { p.question.options = null; }],
+  ['non-array options', p => { p.question.options = 'invalid'; }],
+  ['null option', p => { p.question.options = [null]; }],
+  ['malformed option description', p => { p.question.options[0].description = {}; }],
+  ['duplicate option labels', p => { p.question.options.push(p.question.options[0]); }],
+  ['blank question ID', p => { p.question.id = ''; }],
+  ['null question', p => { p.item.questions = [null]; }],
+  ['missing question set', p => { delete p.item.questions; }],
+  ['empty question set', p => { p.item.questions = []; }],
+  ['duplicate question IDs', p => { p.item.questions.push({ ...p.question }); }],
+  ['missing request ID', p => { delete p.item.requestId; }],
+  ['non-finite request ID', p => { p.item.requestId = Infinity; }]
+]) test(`malformed mounted question: ${name} shows a Codex fallback instead of no requests`, () => {
+  const f = fixture(); const p = pendingFixture(f); mutate(p);
+  assert.equal(f.deckState().pending.length, 0);
+  assert.match(f.deckState().pendingUnavailable, /Codex/);
+  assert.equal(p.calls.length, 0);
+});
+
+for (const [name, answers] of [
+  ['unknown option', [{ id: 'next', optionID: 'Delete everything' }]],
+  ['foreign question', [{ id: 'foreign', optionID: 'Build' }]],
+  ['blank answer', [{ id: 'next', text: ' ' }]],
+  ['extra fields', [{ id: 'next', text: 'Build', sendPrompt: true }]],
+  ['option with unrelated text', [{ id: 'next', optionID: 'Build', text: 'also do this' }]],
+  ['extra question', [{ id: 'next', optionID: 'Build' }, { id: 'other', text: 'text' }]],
+  ['missing answer', []]
+]) test(`question action rejects ${name} before native dispatch`, async () => {
+  const f = fixture(); const p = pendingFixture(f);
+  await assert.rejects(f.action(currentAction(f, { answers })));
+  assert.equal(p.calls.length, 0);
+});
+
+test('questions without an Other option reject custom text', async () => {
+  const f = fixture(); const p = pendingFixture(f); p.question.isOther = false;
+  await assert.rejects(f.action(currentAction(f, { answers: [{ id: 'next', text: 'custom' }] })), /valid answer/);
+  assert.equal(p.calls.length, 0);
+});
+
+for (const type of ['approval', 'permissionRequest']) for (const decision of ['approve', 'deny']) {
+  test(`${type} ${decision} uses only its one-request callback`, async () => {
+    const f = fixture(); const p = pendingFixture(f, type);
+    const result = await f.action(currentAction(f, { decision }));
+    assert.equal(result.ok, true);
+    assert.deepEqual(p.calls, [decision]);
+  });
+}
+
+test('nested normalized permission panel is not exposed as another unsupported request', () => {
+  const f = fixture(); const p = pendingFixture(f, 'permissionRequest');
+  p.item.type = 'permission-request';
+  p.panel.child = { memoizedProps: { conversationId: 'chat-1', pendingRequest: p.item }, child: p.controls };
+  assert.equal(f.deckState().pending.length, 1);
+  assert.equal(f.deckState().pendingUnavailable, undefined);
+});
+
+test('malformed mounted permissions show a Codex fallback', () => {
+  const f = fixture(); const p = pendingFixture(f, 'permissionRequest');
+  p.item.permissions = null;
+  assert.equal(f.deckState().pending.length, 0);
+  assert.match(f.deckState().pendingUnavailable, /Codex/);
+});
+
+test('patch approval exposes full changes rather than hiding the diff', () => {
+  const f = fixture(); const p = pendingFixture(f, 'approval');
+  Object.assign(p.item, { type: 'patch', changes: { 'test.js': { type: 'update', unifiedDiff: '-old\n+new' } } });
+  assert.deepEqual(JSON.parse(f.deckState().pending[0].detail).changes, p.item.changes);
+});
+
+test('patch approval includes grant scope and visualization changes in review and fingerprint', async () => {
+  const f = fixture(); const p = pendingFixture(f, 'approval');
+  Object.assign(p.item, { type: 'patch', changes: {}, grantRoot: '/project', visualizationActivities: [{ action: 'update', id: 'chart-1', patch: 'new chart' }] });
+  const request = f.deckState().pending[0];
+  const detail = JSON.parse(request.detail);
+  assert.equal(detail.grantRoot, '/project');
+  assert.deepEqual(detail.visualizationActivities, p.item.visualizationActivities);
+  const action = currentAction(f, { decision: 'approve' });
+  p.item.grantRoot = '/';
+  await assert.rejects(f.action(action), /request changed/);
+  assert.equal(p.calls.length, 0);
+});
+
+test('changed host or command scope invalidates the approval fingerprint', async () => {
+  const f = fixture(); const p = pendingFixture(f, 'approval');
+  const action = currentAction(f, { decision: 'approve' });
+  p.item.proposedExecpolicyAmendment = ['git'];
+  await assert.rejects(f.action(action), /request changed/);
+  delete p.item.proposedExecpolicyAmendment;
+  p.panel.memoizedProps.hostId = 'different-host';
+  await assert.rejects(f.action(action), /request changed/);
+  assert.equal(p.calls.length, 0);
+});
+
+test('approval cannot grant blanket/session access', async () => {
+  const f = fixture(); const p = pendingFixture(f, 'approval');
+  await assert.rejects(f.action(currentAction(f, { decision: 'acceptForSession' })), /allowing once/);
+  assert.equal(p.calls.length, 0);
+});
+
+test('changed command content invalidates approval fingerprint', async () => {
+  const f = fixture(); const p = pendingFixture(f, 'approval');
+  const action = currentAction(f, { decision: 'approve' });
+  p.item.cmd.push('--different');
+  await assert.rejects(f.action(action), /request changed/);
+  assert.equal(p.calls.length, 0);
+});
+
+test('changed question invalidates its fingerprint', async () => {
+  const f = fixture(); const p = pendingFixture(f);
+  const action = currentAction(f, { answers: [{ id: 'next', optionID: 'Build' }] });
+  p.question.question = 'Different request';
+  await assert.rejects(f.action(action), /request changed/);
+  assert.equal(p.calls.length, 0);
+});
+
+test('pending actions reject a stale chat and replayed response', async () => {
+  const f = fixture(); const p = pendingFixture(f, 'approval');
+  const action = currentAction(f, { decision: 'deny' });
+  await assert.rejects(f.action({ ...action, targetID: 'other-chat' }), /no longer active/);
+  await f.action(action);
+  await assert.rejects(f.action(action), /already answered/);
+  assert.deepEqual(p.calls, ['deny']);
+});
+
+test('unmounted and foreign pending controls are not exposed', () => {
+  const f = fixture(); pendingFixture(f, 'userInput', { hidden: true });
+  assert.equal(f.deckState().pending.length, 0);
+  pendingFixture(f, 'userInput', { foreign: true });
+  assert.equal(f.deckState().pending.length, 0);
+});
+
+test('unsupported callback shapes fail closed and give a Mac fallback', () => {
+  const f = fixture(); const p = pendingFixture(f);
+  p.controls.memoizedProps.onSubmit = () => { throw Error('Do not call this.'); };
+  assert.equal(f.deckState().pending.length, 0);
+  assert.match(f.deckState().pendingUnavailable, /cannot be answered remotely/);
+});
+
+test('oversized approval is withheld instead of truncating command details', () => {
+  const f = fixture(); const p = pendingFixture(f, 'approval');
+  p.item.cmd = ['x'.repeat(11000)];
+  assert.equal(f.deckState().pending.length, 0);
+  assert.match(f.deckState().pendingUnavailable, /too large/);
+});
+
+test('native callbacks that leave their request pending are not reported as success', async () => {
+  const f = fixture(); const p = pendingFixture(f, 'approval', { retain: true });
+  await assert.rejects(f.action(currentAction(f, { decision: 'approve' })), /has not confirmed/);
+  assert.deepEqual(p.calls, ['approve']);
+});
+
+test('Mac dictation starts in tap mode and stops with insert-only semantics', async () => {
+  const f = fixture(); const v = voiceFixture(f);
+  assert.equal(f.deckState().dictation.available, true);
+  assert.equal((await f.action({ type: 'dictation', targetID: 'chat-1', recording: true })).ok, true);
+  assert.equal(f.deckState().dictation.owned, true);
+  assert.equal((await f.action({ type: 'dictation', targetID: 'chat-1', recording: false })).ok, true);
+  assert.deepEqual(v.calls, [['start', 'tap'], ['stop', 'insert']]);
+  assert.equal(f.deckState().dictation.recording, false);
+  assert.equal(f.deckState().dictation.owned, false);
+});
+
+test('Web Deck cannot stop a recording started on the Mac', async () => {
+  const f = fixture(); const v = voiceFixture(f); v.voice.isDictating = true;
+  await assert.rejects(f.action({ type: 'dictation', targetID: 'chat-1', recording: false }), /started in Codex/);
+  assert.equal(v.calls.length, 0);
+});
+
+test('observing idle or a changed callback revokes dictation ownership', async () => {
+  const f = fixture(); const v = voiceFixture(f);
+  await f.action({ type: 'dictation', targetID: 'chat-1', recording: true });
+  v.voice.isDictating = false;
+  assert.equal(f.deckState().dictation.owned, false);
+  v.voice.isDictating = true;
+  await assert.rejects(f.action({ type: 'dictation', targetID: 'chat-1', recording: false }), /started in Codex/);
+  v.voice.isDictating = false;
+  await f.action({ type: 'dictation', targetID: 'chat-1', recording: true });
+  v.voice.stopDictation = async () => { throw Error('Unrelated callback'); };
+  v.control.stopDictation = v.voice.stopDictation;
+  await assert.rejects(f.action({ type: 'dictation', targetID: 'chat-1', recording: false }), /started in Codex/);
+});
+
+for (const [field, value] of [['isDictationSupported', false], ['isDictationButtonVisible', false],
+  ['isMicrophoneBusy', true], ['isDictationStarting', true], ['isTranscribing', true]]) {
+  test(`dictation is unavailable when ${field}=${value}`, async () => {
+    const f = fixture(); const v = voiceFixture(f); v.voice[field] = value;
+    await assert.rejects(f.action({ type: 'dictation', targetID: 'chat-1', recording: true }), /not available/);
+    assert.equal(v.calls.length, 0);
+  });
+}
+
+test('dictation startup must be verified rather than assumed', async () => {
+  const f = fixture(); voiceFixture(f, { noStart: true });
+  await assert.rejects(f.action({ type: 'dictation', targetID: 'chat-1', recording: true }), /did not confirm/);
+  assert.equal(f.deckState().dictation.owned, false);
+});
+
+test('dictation retains ownership until a delayed React commit confirms recording', async () => {
+  const f = fixture(); const v = voiceFixture(f, { delayedStart: true });
+  await f.action({ type: 'dictation', targetID: 'chat-1', recording: true });
+  assert.equal(f.deckState().dictation.owned, true);
+  await f.action({ type: 'dictation', targetID: 'chat-1', recording: false });
+  assert.deepEqual(v.calls, [['start', 'tap'], ['stop', 'insert']]);
+});
+
+test('native microphone disabled or hidden state cannot be bypassed', async () => {
+  const f = fixture(); const v = voiceFixture(f);
+  v.control.disabled = true;
+  await assert.rejects(f.action({ type: 'dictation', targetID: 'chat-1', recording: true }), /not available/);
+  v.control.disabled = false;
+  v.control.isVisible = false;
+  await assert.rejects(f.action({ type: 'dictation', targetID: 'chat-1', recording: true }), /not available/);
+  assert.equal(v.calls.length, 0);
+});
+
+test('explicit Stop remains available when an owned recording replaces the idle microphone control', async () => {
+  const f = fixture(); const v = voiceFixture(f);
+  await f.action({ type: 'dictation', targetID: 'chat-1', recording: true });
+  v.control.isVisible = false;
+  v.voice.isDictationButtonVisible = false;
+  assert.equal(f.deckState().dictation.available, true);
+  await f.action({ type: 'dictation', targetID: 'chat-1', recording: false });
+  assert.deepEqual(v.calls, [['start', 'tap'], ['stop', 'insert']]);
+});
+
+test('inspecting a different chat cannot stop the original recording or lose its observed ownership', async () => {
+  const f = fixture(); const v = voiceFixture(f);
+  await f.action({ type: 'dictation', targetID: 'chat-1', recording: true });
+  f.owner.memoizedProps.conversationId = 'other-chat';
+  assert.equal(f.deckState().dictation.owned, false);
+  await assert.rejects(f.action({ type: 'dictation', targetID: 'other-chat', recording: false }), /started in Codex/);
+  f.owner.memoizedProps.conversationId = 'chat-1';
+  assert.equal(f.deckState().dictation.owned, true);
+  await f.action({ type: 'dictation', targetID: 'chat-1', recording: false });
+  assert.deepEqual(v.calls, [['start', 'tap'], ['stop', 'insert']]);
 });

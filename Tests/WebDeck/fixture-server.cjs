@@ -55,7 +55,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/logout') return json(200, { ok: true }, { 'Set-Cookie': 'deck-fixture=; Max-Age=0; HttpOnly; SameSite=Strict; Path=/' });
     return json(404, { error: 'Unknown fixture route.' });
   }
-  const files = { '/': ['index.html', 'text/html'], '/deck.css': ['deck.css', 'text/css'], '/deck.js': ['deck.js', 'text/javascript'] };
+  const files = { '/': ['index.html', 'text/html'], '/deck.css': ['deck.css', 'text/css'], '/deck.js': ['deck.js', 'text/javascript'], '/click.wav': ['click.wav', 'audio/wav'] };
   const asset = files[pathname];
   if (!asset) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { 'Content-Type': asset[1] + '; charset=utf-8' });

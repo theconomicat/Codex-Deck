@@ -75,7 +75,7 @@ function codexComposerRuntime() {
     // mounted throughout the change.
     return owners[1];
   };
-  return { locate, dispatcherFor, identityFor };
+  return { locate, dispatcherFor, identityFor, currentRoot };
 }
 
 async function applyCodexPreset(preset, expectedTargetID = null) {
@@ -140,20 +140,287 @@ async function applyCodexPreset(preset, expectedTargetID = null) {
   fail('Codex accepted the update, but its composer did not retain the full preset.');
 }
 
-// Model-only Web Deck state. No transcript, messages, pending approvals or
-// arbitrary runtime properties are returned to the paired device.
+// Only the current saved composer's catalog, dictation controls and its
+// currently mounted approval/question are exposed. Never read chat messages.
+function codexDeckRuntime() {
+  const runtime = codexComposerRuntime();
+  const composer = runtime.locate();
+  const targetID = runtime.identityFor(composer);
+  const route = location.href;
+  if (typeof targetID !== 'string' || !targetID.length) throw new Error('Open a saved Codex chat before using Web Deck.');
+  const ensureActive = () => {
+    const active = runtime.locate();
+    if (location.href !== route || runtime.identityFor(active) !== targetID) {
+      throw new Error('The selected Web Deck chat is no longer active. Refresh and select it again.');
+    }
+    return active;
+  };
+  const walk = (start, visit) => {
+    const stack = [start], seen = new Set();
+    while (stack.length) {
+      const node = stack.pop();
+      if (!node || seen.has(node)) continue;
+      if (seen.size >= 100000) throw new Error('The Codex control search reached its limit.');
+      seen.add(node);
+      visit(node);
+      // A subtree walk must not visit its root's siblings.
+      for (let child = node.child; child; child = child.sibling) {
+        stack.push(child);
+        if (stack.length > 100000) throw new Error('The Codex control search reached its limit.');
+      }
+    }
+  };
+  const visible = node => {
+    const element = node.stateNode;
+    return element?.isConnected === true && typeof element.getClientRects === 'function' &&
+      element.getClientRects().length > 0 &&
+      !element.closest?.('[hidden], [inert], [aria-hidden="true"], [data-app-shell-active-page="false"]') &&
+      element.checkVisibility?.({ checkOpacity: true, checkVisibilityCSS: true }) !== false;
+  };
+  const dictation = active => {
+    const candidates = active.owners.filter(owner => owner.memoizedProps?.voiceControls);
+    if (candidates.length !== 1) {
+      if (globalThis.__codexUsageDeckDictation?.targetID === targetID) delete globalThis.__codexUsageDeckDictation;
+      return { state: { available: false, recording: false, owned: false } };
+    }
+    const props = candidates[0].memoizedProps, voice = props.voiceControls;
+    const recording = voice.isDictating === true;
+    const ownership = globalThis.__codexUsageDeckDictation;
+    const sameRecording = ownership?.targetID === targetID && ownership.start === voice.startDictation && ownership.stop === voice.stopDictation;
+    if (ownership?.targetID === targetID && (!sameRecording || (!recording && !voice.isDictationStarting && !ownership.starting))) {
+      delete globalThis.__codexUsageDeckDictation;
+    }
+    const owned = !!sameRecording && (recording || ownership.starting);
+    const controls = [];
+    walk(candidates[0], node => {
+      const control = node.memoizedProps;
+      if (typeof control?.startDictation === 'function' && control.stopDictation === voice.stopDictation &&
+          Object.hasOwn(control, 'isVisible') && Object.hasOwn(control, 'disabled')) {
+        let mounted = false;
+        walk(node, child => { if (visible(child)) mounted = true; });
+        if (mounted && !controls.includes(control)) controls.push(control);
+      }
+    });
+    const nativeControl = controls.length === 1 ? controls[0] : null;
+    const available = ((recording && owned) || (nativeControl?.isVisible === true && !nativeControl.disabled && voice.isDictationButtonVisible === true)) &&
+      typeof voice.startDictation === 'function' && typeof voice.stopDictation === 'function' &&
+      voice.isDictationSupported === true &&
+      !props.isInteractionBlocked && props.interactionsEnabled !== false &&
+      !voice.isDictationStarting && !voice.isTranscribing && (!voice.isMicrophoneBusy || recording) &&
+      (voice.realtimeSession?.thread?.phase ?? 'inactive') === 'inactive';
+    return { state: { available, recording, owned }, voice, nativeControl };
+  };
+  const pending = () => {
+    const owners = [];
+    walk(runtime.currentRoot(), node => {
+      const props = node.memoizedProps;
+      if (props?.conversationId !== targetID || !props.pendingRequest?.type) return;
+      let mounted = false;
+      walk(node, child => { if (visible(child)) mounted = true; });
+      if (mounted) owners.push(node);
+    });
+    // The root panel and its specialized child can share the same pendingRequest.
+    const entries = new Map(), ids = new Set();
+    let unavailable;
+    for (const owner of owners) {
+      const request = owner.memoizedProps.pendingRequest;
+      // The permission panel receives the normalized item too; its enclosing
+      // pendingRequest is the identity-bearing request, not a second request.
+      if (owners.some(parent => parent !== owner && parent.memoizedProps.pendingRequest?.type === 'permissionRequest' &&
+          parent.memoizedProps.pendingRequest.item === request)) continue;
+      if (!['userInput', 'approval', 'permissionRequest'].includes(request.type)) {
+        unavailable = 'This request must be answered in Codex.';
+        continue;
+      }
+      const item = request.item;
+      if (!item || request.environmentInput != null || request.isOnboardingDynamicInput) {
+        unavailable = 'This request must be answered in Codex.';
+        continue;
+      }
+      const nativeID = request.type === 'approval' ? item.approvalRequestId : item.requestId;
+      if (!(typeof nativeID === 'string' && nativeID.length > 0) && !Number.isSafeInteger(nativeID)) {
+        unavailable = 'This request has an unsupported identity. Answer it in Codex.';
+        continue;
+      }
+      const id = `${request.type}:${typeof nativeID}:${String(nativeID)}`;
+      ids.add(id);
+      let data, submit, binding;
+      if (request.type === 'userInput') {
+        if (!Array.isArray(item.questions) || !item.questions.length || item.questions.length > 12) {
+          unavailable = 'This question set must be answered in Codex.';
+          continue;
+        }
+        // Codex's C6r/T6r adapters normalize public options:null/missing to [].
+        // Its mounted Gr/Zr callbacks require arrays, so do not invent a shape
+        // that the bound submit callback itself cannot consume.
+        const valid = item.questions.every(question => typeof question?.id === 'string' && question.id.length > 0 &&
+          typeof question.question === 'string' && question.question.length > 0 && Array.isArray(question.options) &&
+          question.options.every(option => typeof option?.label === 'string' && option.label.length > 0 &&
+            (option.description == null || typeof option.description === 'string')) &&
+          new Set(question.options.map(option => option.label)).size === question.options.length &&
+          (question.isOther == null || typeof question.isOther === 'boolean') &&
+          (question.isSecret == null || typeof question.isSecret === 'boolean'));
+        if (!valid || new Set(item.questions.map(question => question.id)).size !== item.questions.length) {
+          unavailable = 'This question has an unsupported format. Answer it in Codex.';
+          continue;
+        }
+        const callbacks = new Set();
+        walk(owner, node => {
+          const props = node.memoizedProps;
+          if (Array.isArray(props?.questionAndOptions) && typeof props.onSubmit === 'function' &&
+              /\.replyWithUserInputResponse\s*\(/.test(Function.prototype.toString.call(props.onSubmit))) callbacks.add(props.onSubmit);
+        });
+        if (callbacks.size !== 1) { unavailable = 'This question cannot be answered remotely in this Codex version.'; continue; }
+        submit = [...callbacks][0];
+        binding = [submit];
+        data = { id, kind: 'question', title: 'Codex needs your answer', detail: '',
+          questions: item.questions.map(question => ({ id: question.id, prompt: question.question,
+            isSecret: question.isSecret === true, allowOther: question.isOther === true || question.options.length === 0,
+            options: question.options.map(option => ({ id: option.label, label: option.label, description: option.description ?? '' })) })) };
+      } else {
+        const actions = [];
+        walk(owner, node => {
+          const candidate = node.memoizedProps?.actions;
+          if (typeof candidate?.onApprove === 'function' && typeof candidate.onDeny === 'function' &&
+              !actions.some(action => action.onApprove === candidate.onApprove && action.onDeny === candidate.onDeny)) actions.push(candidate);
+        });
+        if (actions.length !== 1) { unavailable = 'This approval cannot be answered remotely in this Codex version.'; continue; }
+        binding = [actions[0].onApprove, actions[0].onDeny];
+        submit = decision => decision === 'approve' ? actions[0].onApprove() : actions[0].onDeny();
+        let title, detail;
+        if (request.type === 'permissionRequest') {
+          if (!item.permissions || typeof item.permissions !== 'object' || Array.isArray(item.permissions)) {
+            unavailable = 'These permissions must be reviewed in Codex.';
+            continue;
+          }
+          title = item.reason || 'Allow these permissions for this turn?';
+          detail = JSON.stringify(item.permissions, null, 2);
+        } else if (item.type === 'exec' && Array.isArray(item.cmd) && item.cmd.every(part => typeof part === 'string')) {
+          title = item.approvalReason || 'Allow this command?';
+          detail = JSON.stringify({ command: item.cmd, cwd: item.cwd ?? null, network: item.networkApprovalContext ?? null,
+            proposedNetworkPolicyAmendments: item.proposedNetworkPolicyAmendments ?? null,
+            proposedExecpolicyAmendment: item.proposedExecpolicyAmendment ?? null }, null, 2);
+        } else if (item.type === 'patch' && item.changes && typeof item.changes === 'object') {
+          title = 'Allow these file changes?';
+          detail = JSON.stringify({ changes: item.changes, grantRoot: item.grantRoot ?? null,
+            visualizationActivities: item.visualizationActivities ?? [] }, null, 2);
+        } else { unavailable = 'This approval must be reviewed in Codex.'; continue; }
+        data = { id, kind: 'approval', title, detail,
+          choices: [{ id: 'approve', label: 'Allow once' }, { id: 'deny', label: 'Deny' }] };
+      }
+      // The exact displayed request is the concurrency token. Do not truncate
+      // commands or permissions: oversized requests must be reviewed on the Mac.
+      const fingerprint = JSON.stringify({ request: data, hostID: owner.memoizedProps.hostId ?? null });
+      if (new TextEncoder().encode(fingerprint).length > 10000) {
+        unavailable = 'This request is too large to review here. Open it in Codex.';
+        continue;
+      }
+      const entry = { data: { ...data, fingerprint }, submit, binding };
+      const previous = entries.get(id);
+      if (previous && (previous.data.fingerprint !== fingerprint ||
+          previous.binding.some((callback, index) => callback !== binding[index]))) {
+        throw new Error('Several different pending requests share the same identity.');
+      }
+      entries.set(id, entry);
+    }
+    return { entries, ids, unavailable };
+  };
+  return { composer, targetID, ensureActive, dictation, pending };
+}
+
 function readCodexDeck() {
-  const { locate, identityFor } = codexComposerRuntime();
-  const composer = locate();
-  const targetID = identityFor(composer);
-  if (typeof targetID !== 'string' || !targetID.length) {
-    throw new Error('Open a saved Codex chat before using Web Deck.');
-  }
+  const { composer, targetID, dictation, pending } = codexDeckRuntime();
   const { model, reasoningEffort: effort } = composer.props;
   if (typeof model !== 'string' || !model.length || typeof effort !== 'string' || !effort.length) {
     throw new Error('Codex is still loading its model selection.');
   }
   const title = composer.owners.map(owner => owner.memoizedProps).find(props =>
     props?.conversationId === targetID && typeof props.title === 'string' && props.title.length)?.title;
-  return { targetID, title: title ?? 'Current Codex chat', model, effort };
+  const disabled = composer.props.disabled || composer.props.modelOptionsDisabled || composer.props.reasoningEffortDisabled ||
+    composer.props.daybreak?.isSaving || composer.props.daybreak?.disabled;
+  const models = disabled ? [] : (composer.props.modelOptions ?? []).filter(option => option.disabledReason == null &&
+    option.model?.model !== composer.props.lockedModelSlug && typeof option.model?.model === 'string' &&
+    Array.isArray(option.model.supportedReasoningEfforts)).map(option => ({
+      id: option.model.model, name: option.model.displayName ?? option.model.model,
+      efforts: option.model.supportedReasoningEfforts.map(level => level.reasoningEffort).filter(level => typeof level === 'string')
+    }));
+  const requests = pending();
+  return { targetID, title: title ?? 'Current Codex chat', model, effort, models,
+    dictation: dictation(composer).state, pending: [...requests.entries.values()].map(entry => entry.data),
+    ...(requests.unavailable ? { pendingUnavailable: requests.unavailable } : {}) };
+}
+
+async function performCodexDeckAction(input) {
+  const runtime = codexDeckRuntime();
+  const fail = message => { throw new Error(message); };
+  if (!input || input.targetID !== runtime.targetID) fail('The selected Web Deck chat is no longer active. Refresh and select it again.');
+  if (input.type === 'model') {
+    const result = await applyCodexPreset({ model: input.model, effort: input.effort }, input.targetID);
+    return { ok: true, message: `${result.displayName} · ${result.effort}`, ...result };
+  }
+  if (input.type === 'dictation') {
+    if (typeof input.recording !== 'boolean') fail('Invalid dictation action.');
+    const control = runtime.dictation(runtime.ensureActive());
+    if (!control.state.available) fail('Mac dictation is not available in this composer.');
+    if (control.state.recording && !control.state.owned) fail('This recording was started in Codex. Stop it on the Mac.');
+    let startedOwnership;
+    if (control.state.recording !== input.recording) {
+      // Native tap mode plus insert-only stop never sends the composer text.
+      if (input.recording) {
+        const ownership = { targetID: runtime.targetID, start: control.voice.startDictation, stop: control.voice.stopDictation, starting: true };
+        startedOwnership = ownership;
+        globalThis.__codexUsageDeckDictation = ownership;
+        try { await control.nativeControl.startDictation('tap'); }
+        catch (error) { if (globalThis.__codexUsageDeckDictation === ownership) delete globalThis.__codexUsageDeckDictation; throw error; }
+      } else {
+        await control.voice.stopDictation('insert');
+        delete globalThis.__codexUsageDeckDictation;
+      }
+    }
+    try {
+      for (let attempt = 0; attempt < 60; attempt++) {
+        const current = runtime.dictation(runtime.ensureActive()).state;
+        if (current.recording === input.recording && (!input.recording || current.owned)) {
+          return { ok: true, message: input.recording ? 'Mac microphone on.' : 'Recording stopped. Transcript stays in the Mac composer.' };
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      fail('Codex did not confirm the microphone state. Check microphone access on the Mac.');
+    } finally {
+      if (startedOwnership) startedOwnership.starting = false;
+    }
+  }
+  if (!['approval', 'question'].includes(input.type) || typeof input.id !== 'string' || typeof input.fingerprint !== 'string') fail('Unsupported Web Deck action.');
+  runtime.ensureActive();
+  const entry = runtime.pending().entries.get(input.id);
+  if (!entry || entry.data.kind !== input.type || entry.data.fingerprint !== input.fingerprint) fail('This request changed or was already answered. Refresh before responding.');
+  let response;
+  if (input.type === 'approval') {
+    if (!['approve', 'deny'].includes(input.decision)) fail('Only allowing once or denying this request is supported.');
+    response = input.decision;
+  } else {
+    if (!Array.isArray(input.answers) || input.answers.length !== entry.data.questions.length ||
+        new Set(input.answers.map(answer => answer?.id)).size !== input.answers.length) fail('Answer each current question exactly once.');
+    response = entry.data.questions.map(question => {
+      const answer = input.answers.find(answer => answer?.id === question.id);
+      if (!answer || Object.keys(answer).some(key => !['id', 'optionID', 'text'].includes(key))) fail('The answer does not match the current question.');
+      if (answer.optionID != null) {
+        if (typeof answer.optionID !== 'string' || !question.options.some(option => option.id === answer.optionID) ||
+            (answer.text != null && answer.text !== '')) fail('Choose one of the current options, or provide a separate custom answer.');
+        return { selectedOptionId: answer.optionID, freeformText: '' };
+      }
+      if (!question.allowOther || typeof answer.text !== 'string' || !answer.text.trim() || answer.text.length > 8000) fail('Enter a valid answer to the current question.');
+      return { selectedOptionId: null, freeformText: answer.text.trim() };
+    });
+  }
+  runtime.ensureActive();
+  await entry.submit(response);
+  // UI wrappers return void. Confirm that the exact pending request disappears
+  // instead of claiming that merely calling a callback approved anything.
+  for (let attempt = 0; attempt < 80; attempt++) {
+    runtime.ensureActive();
+    if (!runtime.pending().ids.has(input.id)) return { ok: true, message: input.type === 'approval' ? 'Response received by Codex.' : 'Answer received by Codex.' };
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  fail('Codex has not confirmed this response. Review the pending request on the Mac.');
 }

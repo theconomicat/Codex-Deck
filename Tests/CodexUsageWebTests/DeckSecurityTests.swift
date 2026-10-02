@@ -134,3 +134,20 @@ private func pair(_ router: DeckRouter, now: Date = Date()) async throws -> (Str
     #expect(await router.route(try request("/api/pair", method: "POST", body: ["token": try #require(router.pairingToken)]), peer: "192.168.1.20").status == 409)
     #expect(router.connectedDeviceCount == 8)
 }
+
+
+@Test @MainActor func controlsRequirePairingCSRFAndSameOriginAndPreserveRevocation() async throws {
+    let router = fixtureRouter()
+    var called = 0
+    router.onControl = { _ in called += 1; return Data("{\"ok\":true}".utf8) }
+    #expect(await router.route(try request("/api/control", method: "POST"), peer: "192.168.1.20").status == 401)
+    let (cookie, csrf) = try await pair(router)
+    #expect(await router.route(try request("/api/control", method: "POST", cookie: cookie), peer: "192.168.1.20").status == 403)
+    #expect(await router.route(try request("/api/control", method: "POST", cookie: cookie, csrf: csrf,
+                                         headers: ["origin": "http://attacker.example"]), peer: "192.168.1.20").status == 403)
+    #expect(called == 0)
+    #expect(await router.route(try request("/api/control", method: "POST", cookie: cookie, csrf: csrf), peer: "192.168.1.20").status == 200)
+    #expect(called == 1)
+    router.onControl = { _ in router.revokeAll(); return Data("{\"ok\":true}".utf8) }
+    #expect(await router.route(try request("/api/control", method: "POST", cookie: cookie, csrf: csrf), peer: "192.168.1.20").status == 401)
+}

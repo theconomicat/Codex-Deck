@@ -100,3 +100,15 @@ func directWebSocketRejectsFailureInsteadOfReportingApplied(_ mode: String) asyn
         }
     }
 }
+
+
+@Test func deckWebSocketControlRequiresAConfirmedResult() async throws {
+    let input = try DeckControlInput.validated(Data(#"{"type":"dictation","targetID":"chat-1","recording":true}"#.utf8))
+    try await withFixture("deck") { port in
+        let result = try await DirectModelSwitcher(port: port).control(input)
+        #expect(result.ok)
+    }
+    try await withFixture("control-rejected") { port in
+        await #expect(throws: DirectSwitchError.self) { try await DirectModelSwitcher(port: port).control(input) }
+    }
+}

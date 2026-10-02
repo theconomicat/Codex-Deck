@@ -107,7 +107,7 @@ struct DeckHTTPResponse: Sendable {
         fields["Cache-Control"] = "no-store"
         fields["X-Content-Type-Options"] = "nosniff"
         fields["Referrer-Policy"] = "no-referrer"
-        fields["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"
+        fields["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"
         var result = Data("HTTP/1.1 \(status) \(reason)\r\n".utf8)
         for key in fields.keys.sorted() { result.append(Data("\(key): \(fields[key]!)\r\n".utf8)) }
         result.append(Data("\r\n".utf8))

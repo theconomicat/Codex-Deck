@@ -19,10 +19,23 @@
         <span class="key-top"><span>Usage</span><span class="settings-icon" aria-hidden="true">···</span></span>
         <span class="usage-dial">
           <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-track" cx="60" cy="60" r="52"/><circle id="usage-ring" class="ring-value" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="0 100"/></svg>
-          <span class="usage-reading"><span id="usage-value">—</span><span class="usage-caption">remaining</span></span>
+          <span class="usage-reading"><span id="usage-value">—</span></span>
         </span>
       </button>
     </div>
+    <nav id="micro-dock" class="micro-dock" aria-label="Codex controls">
+      <button id="open-model" type="button" class="dock-button model-control" aria-haspopup="dialog" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16m12-16v16M2 9h8m4 6h8"/><circle cx="6" cy="9" r="2"/><circle cx="18" cy="15" r="2"/></svg>
+        <span id="model-control-label">Model & effort</span><span class="compact-model-label" aria-hidden="true">Model</span>
+      </button>
+      <button id="dictation" type="button" class="dock-button" aria-label="Start Mac dictation" aria-pressed="false" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>
+        <span id="dictation-label">Mac mic</span>
+      </button>
+      <button id="open-requests" type="button" class="dock-button requests-control" aria-haspopup="dialog" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 3H4v14h5l3 4 3-4h5zM8 8h8m-8 4h5"/></svg><span id="requests-label">Requests</span>
+      </button>
+    </nav>
     <section id="pairing" class="pairing" aria-labelledby="pairing-title" hidden>
       <h1 id="pairing-title">Connect to your Mac</h1>
       <p>Open Web Deck in the Codex-Usage menu on your Mac and scan a new pairing QR code.</p>
@@ -33,17 +46,37 @@
     <p id="feedback" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
     <noscript><p class="notice">Enable JavaScript to use the deck.</p></noscript>
   </main>
+  <dialog id="model-controls" aria-labelledby="model-title">
+    <div class="dialog-heading"><h2 id="model-title">Model & effort</h2><button type="button" class="dialog-close" data-close="model-controls" aria-label="Close model controls">×</button></div>
+    <label class="field-label" for="model-select">Model</label>
+    <select id="model-select"></select>
+    <div id="effort-dial" class="effort-dial" aria-hidden="true">
+      <svg viewBox="0 0 160 160"><path class="dial-track" d="M30 130a70 70 0 1 1 100 0"/><circle class="dial-face" cx="80" cy="80" r="58"/><g id="dial-indicator"><path d="M80 34v12"/></g></svg>
+      <span id="effort-value">—</span>
+    </div>
+    <label class="sr-only" for="effort-range">Reasoning effort</label>
+    <input id="effort-range" type="range" min="0" max="0" step="1" value="0" disabled>
+    <div class="effort-bounds" aria-hidden="true"><span id="effort-min"></span><span id="effort-max"></span></div>
+    <p id="model-status" class="secondary" role="status">Choose a model, then drag or turn the dial.</p>
+  </dialog>
+  <dialog id="requests" aria-labelledby="requests-title">
+    <div class="dialog-heading"><h2 id="requests-title">Codex is waiting</h2><button type="button" class="dialog-close" data-close="requests" aria-label="Close requests">×</button></div>
+    <p id="request-target" class="secondary"></p>
+    <div id="requests-content"></div>
+    <p id="requests-status" class="secondary" role="status"></p>
+  </dialog>
   <dialog id="controls" aria-labelledby="controls-title">
     <div class="dialog-heading"><h2 id="controls-title">Deck controls</h2><button id="close-controls" type="button" aria-label="Close controls">×</button></div>
     <p id="connection-label" class="secondary">Connecting</p>
     <p class="field-label">Active chat</p><p id="target-title">Waiting for Codex…</p>
     <p id="usage-details" class="secondary"></p>
+    <p id="pending-unavailable" class="secondary" hidden></p>
     <div class="control-grid">
       <button id="fullscreen" type="button" class="control-button">Enter full screen</button>
-      <button id="sound" type="button" class="control-button" aria-pressed="true">Sound on</button>
       <button id="refresh" type="button" class="control-button">Refresh</button>
       <button id="logout" type="button" class="control-button" hidden>Disconnect</button>
     </div>
+    <p id="controls-status" class="request-error" role="status"></p>
     <p id="fullscreen-help" class="secondary" hidden></p>
   </dialog>
 </body>

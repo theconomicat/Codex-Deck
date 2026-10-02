@@ -3,7 +3,7 @@
 [한국어 사용 설명서](README.ko.md)
 
 A macOS menu bar companion for **remaining Codex quota**, **model preset shortcuts**, and a **phone Web Deck**.
-Change the current chat's model and reasoning effort together without opening the model picker. Use your keyboard or five buttons in your phone's browser on the same Wi-Fi. No Stream Deck hardware is required.
+Change the current chat's model and reasoning effort together without opening the model picker. Use five preset keys or a model-and-effort dial in your phone's browser on the same Wi-Fi. Start Mac dictation, review a waiting permission request, or answer Codex's current question from the same deck. No Stream Deck hardware is required.
 
 ## Preview
 
@@ -25,7 +25,11 @@ User-provided screenshot of a weekly-only account: the green ring shows 94% rema
 
 <img src="docs/web-deck-mobile.png" alt="The same six-key deck arranged in two columns for portrait use" width="260" />
 
-Version 0.7.0, rendered with synthetic offline fixture data (94% remaining). These landscape and portrait previews illustrate the interface; they are not photos of a phone controlling live Codex.
+<img src="docs/web-deck-dial.png" alt="Model selection and reasoning-effort dial with a keyboard-accessible slider" width="500" />
+
+<img src="docs/web-deck-questions.png" alt="A pending question with selectable answers and a request-specific text field" width="500" />
+
+Version 0.8.0, rendered with synthetic offline fixture data. These landscape, portrait, dial, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
 
 ---
 
@@ -49,7 +53,7 @@ Your Codex account must offer the selected model and effort. Unsupported choices
 ### Install the app
 
 1. Download `Codex-Usage-macos.zip` from the desired [release](https://github.com/theconomicat/Codex-Usage/releases).
-   **Web Deck requires 0.6.0 or newer**; the five keyboard presets require 0.4.0 or newer. If that version is not published yet, build from source below.
+   **The model dial, Mac mic, and pending-request controls require 0.8.0 or newer**. Web Deck first shipped in 0.6.0; the five keyboard presets require 0.4.0 or newer. If that version is not published yet, build from source below.
 2. Unzip and move `Codex-Usage.app` into **`/Applications`**.
 3. Quit an older running copy with **Quit Codex-Usage** before opening the new app.
 4. Click the Codex-Usage icon in the macOS menu bar. It is a menu bar app; a persistent Dock window is not expected.
@@ -113,18 +117,41 @@ Turn off **Open Codex Automatically** to start only the usage companion. Turning
 3. Choose **Web Deck… → Start Web Deck** in the Mac menu. This starts a small local HTTP server; it is off by default and does not start automatically at login.
 4. Scan the QR code with your phone, or choose **Copy Pairing Link** and open that complete link in the phone's browser. The bare IP address opens the page but does not pair a device.
 5. Tap **Usage** to review the active chat, close the controls, then tap a model key. The page uses the first five configured presets in slot order from the same `presets.json` as the keyboard shortcuts. A key turns green after the host confirms the selection.
-6. Rotate the phone for **3 × 2 landscape**; portrait uses **2 × 3**. Five model keys and a usage tile fill the viewport without a header or footer.
+6. Rotate the phone for **3 × 2 landscape**; portrait uses **2 × 3**. Five model keys and a usage tile fill the main grid. A compact control strip holds **Model & effort**, **Mac mic**, and any waiting **Requests**, without a page header or explanatory text.
 7. Tap **Usage → Enter full screen** in supported browsers. On iPhone, use Safari's **Share → Add to Home Screen** and open the saved deck; pair again if that standalone browser has a separate session.
 
-Keys have a raised edge and short press effect, with a quiet click and vibration where the browser/device allows them. **Usage → Sound on/off** toggles sound and remembers the preference where browser storage is available. Audio starts only after a tap and suspends after each click. Reduced-motion preferences disable key movement. Hardware vibration and fullscreen support vary; unsupported feedback does not block switching.
+Keys have a raised edge, short press effect, and an always-enabled click from a bundled audio file; there is no sound toggle. A supported-device vibration accompanies the press. Playback starts from your tap and does not run continuously. The page cannot override device volume, hardware mute, or browser audio restrictions. If you hear nothing, check the media volume and browser sound settings. Reduced-motion preferences disable key movement; unsupported sound, vibration, or fullscreen does not block the controls.
 
-The sixth tile shows **remaining** quota, prioritizing the weekly window (otherwise the first available window). Tap it for full usage details and reset information. Missing or expired quota, or a lost connection, displays **—**. Connection and error notices appear only when needed.
+The sixth tile shows **remaining quota as a percentage only** inside its ring, with no “remaining” label underneath. It prioritizes the weekly window (otherwise the first available window). Tap **Usage** for full usage details and reset information. Missing or expired quota, or a lost connection, displays **—**. Connection and error notices appear only when needed.
 
 A pairing link expires after **5 minutes** and can be used **once**. Choose **New Pairing Link** for another device or an expired link; existing paired devices stay connected. Each paired browser session lasts up to **8 hours**. Keep pairing links private.
 
 **Disconnect All Devices** revokes every session and creates a fresh link. **Stop Web Deck** closes the server and revokes all sessions. Closing only its settings window keeps it running. After a companion restart, start Web Deck and pair again; neither the server state nor sessions are saved. A phone can also use **Usage → Disconnect** to end its own session.
 
-If the active chat or a preset changes before a tap is applied, the request is rejected. Open **Usage**, refresh, check the active chat, and try again. New unsaved drafts and ambiguous composers are not remote targets. Web Deck currently changes models only; it does not send messages, approve requests, or answer Codex questions.
+If the active chat, preset, model catalog, or waiting request changes before an action is applied, the action is rejected. Open **Usage**, refresh, check the active chat, and try again. New unsaved drafts and ambiguous composers are not remote targets.
+
+#### Choose a model and turn the effort dial
+
+Open **Model & effort** in the control strip. The model selector and effort levels come from the active Codex composer's available catalog; they are not a separate hard-coded model list. Choosing a model applies it with a supported effort. Drag around the dial or use the slider to preview the effort, then release to apply. The slider also supports keyboard input. The change is confirmed by the Mac before the deck shows success.
+
+This changes the current chat, not `presets.json`. To make a choice one of the five permanent keys, use **Model Presets → Edit Presets…** on the Mac as described below.
+
+#### Use the Mac microphone
+
+Tap **Mac mic** to begin Codex dictation using the **microphone connected to the Mac**, then tap **Stop mic**. Stopping inserts the transcript into the Mac composer; it does **not** send a chat message. Review and send from Codex when ready. A recording already started in Codex is shown as **Mic on Mac** and must be stopped there.
+
+Codex dictation must be available in that composer, and macOS must allow **Codex** to use the microphone. Complete any native permission prompt on the Mac; the phone cannot grant it. The web page does not capture or upload your phone's microphone audio. Realtime voice calls are not controlled by this button.
+
+**Stop recording before closing the page or disconnecting.** Browser closure, network loss, or stopping Web Deck may leave Mac dictation recording. **Mic unknown** means the deck cannot confirm its state; check and stop it in Codex on the Mac.
+
+#### Respond to a waiting Codex request
+
+The **Requests** button appears when a supported request is waiting in the active saved chat. Open it, check the chat title and full request details, then respond:
+
+- **Allow once / Deny:** review a command, file changes, or the exact requested permission scope. Approval is limited to that request; permission requests use Codex's current-turn scope. There is no always-allow or blanket permission control.
+- **Questions:** choose one of Codex's options. Use **Other** or a freeform field only when that question allows it, answer every question, then submit. This is a response to that pending question, not a general chat input.
+
+Already answered or changed requests are rejected rather than applied to a different request. Plan implementation prompts, generic option pickers, requests too large to show completely, and unrecognized structures must be handled in Codex on the Mac. The deck does not expose unrelated chats, arbitrary message sending, or shell/code execution controls. See the [Micro-style controls guide](docs/codex-micro.md) for scope and research notes.
 
 The phone connection is **HTTP on the local network**, not an Internet service. Pairing does not encrypt traffic: use a network you trust, do not forward the port, and read [Security](SECURITY.md). If macOS asks, allow Codex-Usage's local-network access or incoming connection. Guest Wi-Fi/client isolation can prevent devices from reaching each other. Web Deck needs a private IPv4 address (`10.x.x.x`, `172.16–31.x.x`, or `192.168.x.x`); a displayed `127.0.0.1` address works only on the Mac. After changing networks, stop and start Web Deck to obtain a new address and pairing link.
 
@@ -227,7 +254,7 @@ a weekly-only account gets one gauge and a `Usage` row. Durations appear only to
 
 Usage events are read from `~/.codex/sessions/**/*.jsonl` and `~/.codex/archived_sessions/**/*.jsonl`.
 The companion does not read `auth.json`, API keys, existing browser cookie stores, or Keychain items, and sends no telemetry or requests to an Internet service.
-Direct model switching communicates with the loopback debugging endpoint. Opt-in Web Deck serves its page and limited API to paired devices on your LAN.
+Direct model switching and the optional control bridge communicate with the loopback debugging endpoint. Opt-in Web Deck serves its page and limited API to paired devices on your LAN, including the active chat’s supported pending questions and approval details. Native Codex dictation uses Codex’s own transcription service; the companion’s no-telemetry statement does not describe Codex’s network activity.
 
 The usage optimization addresses repeated whole-file `String.split`/`contains` work observed in a process sample. In a reader-only benchmark over 261 logs (353.3 MiB), initial scan wall time changed from 21.933 s to 3.608 s; unchanged follow-up scans took 0.024 s and 0.020 s. Maximum resident memory changed from 236,208,128 to 28,246,016 bytes. These are local runtime/memory measurements, **not a measurement of battery-life improvement**. See [benchmark scope](docs/model-switching.md#usage-reader-optimization).
 
@@ -247,7 +274,11 @@ The usage optimization addresses repeated whole-file `String.split`/`contains` w
 | Stale quota / `--` | A new local Codex usage event is needed; see the usage section. |
 | Phone cannot open Web Deck | Check the same private Wi-Fi, Mac awake, server running, macOS local-network/firewall permission, and Wi-Fi client isolation. Stop/start after an IP change. |
 | Phone asks to pair again | Use a new full pairing link. Links last 5 minutes/one use; sessions last 8 hours and end on stop/restart/revocation. |
-| Phone reports changed chat/preset | Refresh and review the target. Keep one visible saved chat; finish any Codex confirmation on the Mac. |
+| Phone reports changed chat/preset/request | Refresh and review the target. Keep one visible saved chat; finish any Codex confirmation on the Mac. |
+| No click sound | Check media volume, hardware mute, and browser sound restrictions. The deck always requests click playback, but cannot override those settings. |
+| Model or mic control is disabled | Wait for the active composer's catalog; check supported effort levels and Codex's microphone permission on the Mac. |
+| Mic unknown / connection lost while recording | Check Codex on the Mac and stop recording there. Disconnecting the page does not guarantee recording stops. |
+| A Codex request is missing from the deck | Only supported pending approvals and user-input questions are exposed. Complete other or oversized requests on the Mac. |
 
 If number keys select chats instead, and you do not need Codex's numeric navigation, merge
 [codex-keybindings.example.json](docs/codex-keybindings.example.json) into `~/.codex/keybindings.json` **without removing unrelated entries**, then restart Codex.
@@ -269,10 +300,11 @@ Quit and normally relaunch Codex to close debugging. Restore any Codex keybindin
 A user confirmed **working direct switching in 0.3.1 with Codex 26.928.31416** on 2026-10-02.
 Version 0.4.0 adds five presets and migration; 0.5.0 adds Codex startup at login and a simpler menu, retaining that switching path.
 Version 0.6.0 adds the opt-in Web Deck and incremental usage reads. Its HTTP server, browser UI, and model bridge were checked with isolated fixtures; actual phone-to-Codex switching was not agent-tested.
-Version 0.7.0 adds six tactile keys, landscape/fullscreen support, optional sound, and a numeric remaining-usage ring. Responsive and interaction checks used an offline browser fixture; physical-phone sound and vibration were not measured.
+Version 0.7.0 added six tactile keys and landscape/fullscreen support. Version **0.8.0** adds always-enabled bundled click audio, a percentage-only ring, the live model/effort dial, Mac dictation, and scoped pending approvals/questions.
+The 0.8.0 interface was checked in a real browser with isolated fixture data, and the integration was reviewed against static Codex source. Live Codex actions, native microphone capture, and physical-phone sound/vibration were not validated for this release. Fixture checks establish UI and contract behavior, not guaranteed compatibility with a running Codex build.
 This does not establish Ultra availability for every account or coverage of every window/composer state.
 The integration uses internal structure and may need repair after Codex updates.
-[Implementation and verification](docs/model-switching.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+[Implementation and verification](docs/model-switching.md) · [Micro controls and research](docs/codex-micro.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
 ```bash
 swift test
@@ -290,7 +322,7 @@ ditto -c -k --norsrc --keepParent Codex-Usage.app Codex-Usage-macos.zip
 
 `--startup-status` reports the installed app’s login, Codex auto-launch, and initial connection settings.
 `--print` prints local usage, `--default-presets` prints default JSON, `--check-direct-resources` validates the switching script, and `--check-web-resources` validates the packaged Web Deck page/assets.
-For browser testing without accessing Codex, run `swift run CodexUsageWebFixture` and open its printed loopback pairing URL. It serves the real Web Deck with a clearly labeled `Fixture chat` and in-memory model selection. Restart the fixture for a fresh pairing link.
+For browser testing without accessing Codex, run `swift run CodexUsageWebFixture` and open its printed loopback pairing URL. It serves the real Web Deck with a clearly labeled `Fixture chat`, an in-memory model catalog, simulated dictation, and sample approval/question requests. Fixture actions do not use a microphone, execute commands, or send Codex messages. Restart the fixture for a fresh pairing link.
 Version 0.6.0 verification passed 60 Swift tests and 48 JavaScript tests (36 model-bridge, 12 Web Deck). Offline Chromium checks exercised all five buttons, keyboard/touch, stale/offline/disconnect states, and 320/390 px layouts without horizontal overflow. These checks do not establish live phone-to-Codex compatibility.
 Set `CODEX_USAGE_OUTPUT_DIR` to package elsewhere, or `CODEX_USAGE_SIGN_IDENTITY` to use an installed signing certificate.
 Pushing a `v*` tag triggers the release workflow. A normal commit does not publish a release.

@@ -86,7 +86,7 @@ final class WebDeckController {
         instructions.stringValue = running
             ? (expired ? "Pairing link expired or used. Choose New Pairing Link for another phone. Paired devices remain connected."
                        : "On your phone, join the same trusted Wi-Fi and scan this QR code. This one-use link expires in 5 minutes. Keep it private.")
-            : "Start Web Deck, then pair your phone to switch models in your active Codex chat. Use a trusted private network: the local connection uses HTTP."
+            : "Pair your phone to control models, Mac dictation, and pending requests in your active Codex chat. Use a trusted private network: the local connection uses HTTP."
         toggle.title = running ? "Stop Web Deck" : "Start Web Deck"
         toggle.isEnabled = !starting
         copy.isEnabled = running && !expired
