@@ -1,26 +1,139 @@
-# Web remote design
+---
+name: Codex-Usage Web Deck
+description: A light physical keypad for the Mac companion.
+colors:
+  page: "#e3e7e8"
+  board-light: "#e0e5e6"
+  board-shade: "#cbd2d4"
+  key-light: "#f9fbfb"
+  key-shade: "#e8edef"
+  dialog: "#edf1f2"
+  ink: "#262f32"
+  secondary: "#515e63"
+  green: "#35634c"
+  selected-ink: "#294f3c"
+  selected-secondary: "#415c4e"
+  sage: "#dce9e1"
+  warm: "#815913"
+  error: "#a33d36"
+  focus: "#346856"
+  field-border: "#96a7ae"
+  ring-track: "#bbc7c8"
+typography:
+  body:
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    fontSize: "1rem"
+    fontWeight: 400
+    lineHeight: 1.5
+  heading:
+    fontSize: "1.2rem"
+    fontWeight: 600
+  key-model:
+    fontSize: "clamp(.6875rem, 9cqw, 1.125rem)"
+    lineHeight: 1.35
+  key-effort:
+    fontSize: "clamp(1rem, 15cqw, 2.125rem)"
+    fontWeight: 650
+    lineHeight: 1.15
+    letterSpacing: "-.035em"
+  usage:
+    fontSize: "clamp(1rem, 19cqw, 2.75rem)"
+    fontWeight: 600
+    lineHeight: 1.15
+    letterSpacing: "-.04em"
+  secondary:
+    fontSize: ".8125rem"
+    lineHeight: 1.5
+rounded:
+  field: "8px"
+  control: "10px"
+  dock: "14px"
+  dialog: "24px"
+  key: "clamp(16px, 3.5vmin, 30px)"
+  board: "clamp(26px, 5vmin, 44px)"
+spacing:
+  field-padding: "12px"
+  dialog-padding: "24px"
+  board-padding: "clamp(14px, 2.8vmin, 28px)"
+  key-gap: "clamp(12px, 2.2vmin, 22px)"
+  dock-gap: "clamp(20px, 3vmin, 28px)"
+components:
+  preset-key:
+    backgroundColor: "{colors.key-light}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.key}"
+    padding: "clamp(9px, 2vmin, 24px)"
+  usage-key:
+    backgroundColor: "{colors.key-light}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.key}"
+    typography: "{typography.usage}"
+  control-button:
+    textColor: "{colors.ink}"
+    rounded: "{rounded.control}"
+    padding: "{spacing.field-padding}"
+  text-field:
+    backgroundColor: "{colors.key-light}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.field}"
+    padding: "{spacing.field-padding}"
+  dock-button:
+    textColor: "{colors.ink}"
+    rounded: "{rounded.dock}"
+    padding: "10px 14px"
+---
 
-Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling.
+# Design System: Codex-Usage Web Deck
 
-The remote is an operating surface for model changes, Mac dictation, and responses to the active chat’s pending requests. Use the existing app's dark graphite character and green usage accent, expressed as a compact deck of tactile keys. It is not a marketing page.
+## Overview
 
-## Tokens
+**Creative North Star: "White physical keypad"**
 
-- Background: `#141615`; raised keys: `#242724`; input surface: `#1b1e1b`.
-- Text: `#f3f3ee`; secondary: `#b5bbb3`; muted: `#9ca69a`.
-- Selection and connected state: `#b7e3a1`; pending attention: `#e8c58a`; errors: `#ffb4a8`.
-- Borders: `#3f463d`; focus: `#d6efc8`.
-- Type: system UI, 16px base, fixed rem sizes. Tabular numerals for key numbers.
-- Spacing: 4, 8, 12, 16, 24, 32, 48px. Keys use a 12px radius; controls use 8px.
+The user's white Codex Micro photo sets the material direction: pale square keycaps, shallow dished faces, softly beveled edges, and visible key thickness on a cool gray board. Charcoal labels and icons stay clear against the light surfaces. Depth communicates pressable controls without adding branding or a persistent header.
 
-## Composition and behavior
+Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.8.1 web surface; its stylesheet remains the implementation source.
 
-Fill the main viewport with six physical-style keys: five model presets and a remaining-usage ring. Landscape is 3 × 2; portrait is 2 × 3. A compact dock provides Model & effort, Mac mic, and a Requests button only when supported requests are waiting. No persistent page header, chat title, or explanatory copy. The usage ring contains the percentage only, with no “remaining” caption. The usage key opens a native dialog for the active chat, full usage details, fullscreen, refresh, and disconnect. Pairing and failures appear only when needed.
+**Key Characteristics:**
+- Square white keys with recessed circular faces.
+- Cool gray framing and structural shadows.
+- Restrained sage selection with dark green indicators.
+- Compact English controls using native system type.
 
-Model & effort uses the host’s live catalog and supported effort levels. The visual dial and native range input stay synchronized; pointer movement previews and release commits. Keep the native slider keyboard-accessible. Model choice applies immediately with a supported effort. Pending-request dialogs show the target, complete details, and only the relevant options or text fields; never add a general message composer or blanket access switch.
+## Colors
 
-Use native buttons and semantic headings. Keep focus visible and touch controls at least 44px. Preserve focus across refreshes unless the preset definitions change. Never indicate success before the host confirms it.
+Cool white and gray establish the hardware material; dark green identifies selection and usage. Sage appears inside a selected key and on selected question options. Charcoal is the primary ink; medium gray is reserved for secondary labels. Keep the selected model label in selected-secondary, whose contrast was checked against the sage recess. Amber marks pending attention and reduced usage; red marks recording, errors, and low usage. Focus uses a separate dark green outline.
 
-Graphite bevels and a dark lower edge express depth. A confirmed selection has a green face and indicator; pending uses amber. Press moves down 4px for 90ms; reduced motion removes movement. A bundled media click and supported-device vibration occur after a user gesture, with a short synthesized fallback if media playback fails. Sound is always enabled in the page, with no mute control; browser and hardware mute remain authoritative. Playback is brief, fallback audio suspends after each press, and there are no idle animations. Errors and changed-target notices are dismissible and screen-reader announced. The usage ring shows an em dash for absent, expired, or offline data.
+## Typography
 
-Mac mic has distinct idle, recording, unavailable, and unknown states. Stop inserts a transcript without sending. Connection loss must not show the microphone as safely off: tell the user to check the Mac. Requests remain scoped to the displayed chat and fingerprint; preserve entered answers across unchanged refreshes and reject changed requests.
+Use the native system UI stack, with rem sizes for dialogs, forms, and dock controls. Key model, effort, and usage type scale within each key's container, bounded by rem minimums and maximums. Effort is the dominant label, with the model above it. Use tabular numerals for key numbers and percentages. No external font assets.
+
+## Layout
+
+Center the board within the viewport's safe-area padding. Six keys form a 3 × 2 grid in landscape and a 2 × 3 grid in portrait. The board calculation reserves its padding, gaps, and bottom dock before choosing the largest square key size that fits. Keep the grid and dock aligned.
+
+The dock is 52px high; landscape at 440px height or less uses a 44px dock, 14px board padding, 12px key gap, and 18px dock gap. Below a 520px board container, shorten the visible model control to “Model”; below 350px hide its icon, and below 290px hide the Requests icon. Keep accessible names intact. Dialogs may scroll internally on short screens. Active-deck notices sit at the top so the Mac mic control stays available.
+
+## Elevation & Depth
+
+Use gradients and structural shadows to distinguish the board, raised key edges, and circular recesses. Keys have two gray lower edges and a soft grounded shadow; the pale highlight belongs on the upper edge. The model dial shares this white and gray material. Press reduces the shadow and, for pointer input, moves the key down 4px over 100ms. Keyboard input and reduced motion avoid movement. Exact shadows and motion are recorded in `.impeccable/design.json`.
+
+## Shapes
+
+Keys retain a square silhouette with softly rounded corners. Each dished face is a circle at 80% of key width. The board has broader corners than the keys. Dock controls are shallow rounded rectangles, and form fields use the tighter field radius. Keep touch controls at least 44px.
+
+## Components
+
+- **Preset keys:** model above effort, small key number and indicator at the top. Confirmed selection changes the recess, label, border, and LED; pending uses amber. Preserve selected, busy, disabled, and focus states. Never show success before host confirmation.
+- **Usage key:** a circular track with the percentage only; no “remaining” caption. Unknown, expired, or offline data uses an em dash. Opens the native dialog for the active chat, usage details, fullscreen, refresh, and disconnect.
+- **Model controls:** a light physical dial, native model select, and keyboard-accessible range input. Pointer movement previews and release commits; choosing a model applies a supported effort.
+- **Dock and requests:** Model, Mac mic, and a Requests control only when supported requests are waiting. Recording has an explicit red state. Request dialogs show relevant options and text fields with clear Allow once/Deny treatments.
+- **Feedback:** visible focus outline, dismissible screen-reader-announced notices, short bundled click audio and supported-device vibration after gestures. Sound has no page toggle; hardware/browser mute remains authoritative. No idle animation or continuous audio.
+
+## Do's and Don'ts
+
+- **Do** preserve square keys, readable labels, and visible keyboard focus across supported viewport sizes.
+- **Do** keep existing model, dictation, request, pairing, and validation behavior intact when changing appearance.
+- **Do** use the material shadows to explain pressable controls.
+- **Don't** add decorative branding, a persistent header, or explanatory copy to the main deck.
+- **Don't** use color alone to report recording, selection, pending actions, or failure.
+- **Don't** treat a lost connection as confirmation that the Mac microphone stopped.

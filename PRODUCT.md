@@ -10,7 +10,7 @@ This record covers the mobile web remote added to the existing native macOS menu
 
 ## Users and purpose
 
-Codex users control the Mac’s active saved chat from a phone or tablet on the same Wi-Fi. Version 0.8.0 combines the five model presets with a live model/effort dial, Mac dictation, and scoped responses to pending approvals and user-input questions. The phone is a compact control surface rather than a general chat client.
+Codex users control the Mac’s active saved chat from a phone or tablet on the same Wi-Fi. The remote combines the five model presets with a live model/effort dial, Mac dictation, and scoped responses to pending approvals and user-input questions. The phone is a compact control surface rather than a general chat client.
 
 ## Operating context
 
@@ -30,4 +30,4 @@ The native companion remains the host and source of presets and usage. A browser
 
 ## Working assumptions
 
-The user's Stream Deck reference sets a compact button-grid interaction. The web remote follows the existing dark native menu and English interface labels. Five model keys and one circular usage tile fill the main grid, primarily in landscape, with a compact model/mic/request dock. The ring displays a percentage without a remaining caption. The user explicitly requests physical key depth and press feedback without a persistent header or explanation. Micro-style interactions are implemented through the existing direct bridge; no physical Micro, HID emulation, or feature-gate overrides are part of the product.
+The user's Stream Deck reference sets a compact button-grid interaction, and their white Codex Micro photo sets the visual direction: pale square keycaps with recessed circular faces, light gray framing, soft bevels, visible thickness, and charcoal labels and icons. Five model keys and one circular usage tile form a centered 3 × 2 grid in landscape or 2 × 3 grid in portrait. The keys use the largest square size that fits alongside the compact model/mic/request dock. The ring displays a percentage without a remaining caption. Keep English interface labels and physical press feedback without a persistent header, explanation, or extra branding. The native macOS menu retains its platform styling. Micro-style interactions are implemented through the existing direct bridge; no physical Micro, HID emulation, or feature-gate overrides are part of the product.

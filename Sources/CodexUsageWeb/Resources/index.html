@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#141615">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#e3e7e8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="referrer" content="no-referrer">
   <title>Codex-Usage Web Deck</title>
@@ -14,6 +14,7 @@
 </head>
 <body>
   <main class="remote" aria-label="Codex model deck">
+    <div class="deck-surface">
     <div id="presets" class="deck-grid" aria-label="Model presets and usage" aria-busy="true">
       <button id="usage-key" type="button" class="deck-key usage-key" aria-label="Usage unavailable. Open deck controls" aria-haspopup="dialog">
         <span class="key-top"><span>Usage</span><span class="settings-icon" aria-hidden="true">···</span></span>
@@ -36,6 +37,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 3H4v14h5l3 4 3-4h5zM8 8h8m-8 4h5"/></svg><span id="requests-label">Requests</span>
       </button>
     </nav>
+    </div>
     <section id="pairing" class="pairing" aria-labelledby="pairing-title" hidden>
       <h1 id="pairing-title">Connect to your Mac</h1>
       <p>Open Web Deck in the Codex-Usage menu on your Mac and scan a new pairing QR code.</p>
@@ -51,7 +53,7 @@
     <label class="field-label" for="model-select">Model</label>
     <select id="model-select"></select>
     <div id="effort-dial" class="effort-dial" aria-hidden="true">
-      <svg viewBox="0 0 160 160"><path class="dial-track" d="M30 130a70 70 0 1 1 100 0"/><circle class="dial-face" cx="80" cy="80" r="58"/><g id="dial-indicator"><path d="M80 34v12"/></g></svg>
+      <svg viewBox="0 0 160 160"><defs><linearGradient id="dial-material" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#d4dbdd"/></linearGradient></defs><path class="dial-track" d="M30 130a70 70 0 1 1 100 0"/><circle class="dial-face" cx="80" cy="80" r="58"/><g id="dial-indicator"><path d="M80 34v12"/></g></svg>
       <span id="effort-value">—</span>
     </div>
     <label class="sr-only" for="effort-range">Reasoning effort</label>
