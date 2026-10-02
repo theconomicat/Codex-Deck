@@ -17,7 +17,7 @@ swift run CodexUsage --validate-presets presets.example.json
 - Missing quota windows stay absent; expired data must not become fabricated 100% quota.
 - Preserve unfinished prompts. Do not type prompt text or send Return.
 - Preserve Codex's own model confirmation and permission checks.
-- Keep the debugging connection on loopback; never enable it without the user's setup action.
+- Keep the debugging connection on loopback; automatic startup requires completed initial setup and an enabled auto-launch preference. Never terminate an existing Codex during automatic startup.
 - Report success only after both model and effort are verified. Reject ambiguous targets.
 - Keep both READMEs, the example/schema, and security notes in sync.
 

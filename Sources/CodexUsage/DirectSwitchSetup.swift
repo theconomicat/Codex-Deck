@@ -1,5 +1,6 @@
 import AppKit
 import Darwin
+import CodexUsageCore
 
 @MainActor
 final class DirectSwitchSetup {
@@ -7,10 +8,40 @@ final class DirectSwitchSetup {
     private var window: NSWindow?
     private var label: NSTextField?
     private var button: NSButton?
+    private var isLaunching = false
     var onChange: (() -> Void)?
 
     var port: Int { defaults.integer(forKey: "directBridgePort") }
     var processIdentifier: pid_t { pid_t(defaults.integer(forKey: "directBridgePID")) }
+    var autoLaunchEnabled: Bool {
+        get { defaults.object(forKey: "autoLaunchCodex") as? Bool ?? (port != 0) }
+        set { defaults.set(newValue, forKey: "autoLaunchCodex") }
+    }
+
+    func restoreOnStartup() async -> String? {
+        guard !isLaunching else { return nil }
+        let running = NSRunningApplication.runningApplications(withBundleIdentifier: ModelHotKeys.codexBundleID)
+        switch CodexStartupAction.resolve(hasSavedConnection: port != 0, autoLaunchEnabled: autoLaunchEnabled,
+                                          runningProcessIDs: running.map(\.processIdentifier), connectedProcessID: processIdentifier) {
+        case .disabled, .keepRunning: return nil
+        case .needsManualConnection:
+            return "Codex is already running · use Enable Direct Switching to reconnect"
+        case .launch:
+            isLaunching = true
+            defer { isLaunching = false }
+            do {
+                let url = try codexURL()
+                // Recheck after discovery to avoid racing a normal login launch.
+                guard NSRunningApplication.runningApplications(withBundleIdentifier: ModelHotKeys.codexBundleID).isEmpty else {
+                    return "Codex is already running · use Enable Direct Switching to reconnect"
+                }
+                try await launchCodex(at: url, inBackground: true)
+                return nil
+            } catch {
+                return "Could not open Codex automatically: \(error.localizedDescription)"
+            }
+        }
+    }
 
     func show() {
         if window == nil {
@@ -18,7 +49,7 @@ final class DirectSwitchSetup {
                                   styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.title = "Codex-Usage · Direct Switching"
             window.isReleasedWhenClosed = false
-            let label = NSTextField(wrappingLabelWithString: "Codex를 한 번 재시작하면 모델과 추론 강도를 바로 변경할 수 있습니다.\n\n현재 실행 중인 작업이 끝난 뒤 아래 버튼을 누르세요. 연결은 이 Mac에서만 사용합니다.")
+            let label = NSTextField(wrappingLabelWithString: "Codex를 한 번 재시작하면 모델과 추론 강도를 바로 변경할 수 있습니다.\n\n작업을 마친 뒤 아래 버튼을 누르세요. 이후 보조 앱 시작 시 Codex도 연결 모드로 자동 실행됩니다. 메뉴에서 끌 수 있으며, 연결은 이 Mac에서만 사용합니다.")
             label.frame = NSRect(x: 24, y: 82, width: 422, height: 132)
             label.font = .systemFont(ofSize: 14)
             window.contentView?.addSubview(label)
@@ -36,14 +67,14 @@ final class DirectSwitchSetup {
     }
 
     @objc private func enable() {
+        guard !isLaunching else { return }
+        isLaunching = true
         button?.isEnabled = false
         label?.stringValue = "Codex를 재시작하고 있습니다…"
         Task {
-            defer { button?.isEnabled = true }
+            defer { button?.isEnabled = true; isLaunching = false }
             do {
-                guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: ModelHotKeys.codexBundleID) else {
-                    throw NSError(domain: "CodexUsage.Setup", code: 1, userInfo: [NSLocalizedDescriptionKey: "Codex 앱을 찾을 수 없습니다."])
-                }
+                let url = try codexURL()
                 for app in NSRunningApplication.runningApplications(withBundleIdentifier: ModelHotKeys.codexBundleID) {
                     guard app.terminate() else {
                         throw NSError(domain: "CodexUsage.Setup", code: 2, userInfo: [NSLocalizedDescriptionKey: "Codex를 종료한 뒤 다시 눌러주세요."])
@@ -56,19 +87,31 @@ final class DirectSwitchSetup {
                         throw NSError(domain: "CodexUsage.Setup", code: 3, userInfo: [NSLocalizedDescriptionKey: "Codex 종료 확인을 완료한 뒤 다시 눌러주세요."])
                     }
                 }
-                let port = try Self.availablePort()
-                let config = NSWorkspace.OpenConfiguration()
-                config.arguments = ["--remote-debugging-address=127.0.0.1", "--remote-debugging-port=\(port)"]
-                config.createsNewApplicationInstance = true
-                let launched = try await NSWorkspace.shared.openApplication(at: url, configuration: config)
-                defaults.set(port, forKey: "directBridgePort")
-                defaults.set(Int(launched.processIdentifier), forKey: "directBridgePID")
-                onChange?()
+                try await launchCodex(at: url, inBackground: false)
                 label?.stringValue = "Codex를 직접 전환 모드로 실행했습니다.\n\n채팅을 열고 ⌘⌃1~5를 눌러주세요. 연결과 모델 변경의 성공 여부는 단축키 실행 시 확인합니다.\n\nCodex를 Dock에서 다시 실행하면 이 연결 설정을 다시 실행해야 할 수 있습니다."
             } catch {
                 label?.stringValue = error.localizedDescription
             }
         }
+    }
+
+    private func codexURL() throws -> URL {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: ModelHotKeys.codexBundleID) else {
+            throw NSError(domain: "CodexUsage.Setup", code: 1, userInfo: [NSLocalizedDescriptionKey: "Codex 앱을 찾을 수 없습니다."])
+        }
+        return url
+    }
+
+    private func launchCodex(at url: URL, inBackground: Bool) async throws {
+        let port = try Self.availablePort()
+        let config = NSWorkspace.OpenConfiguration()
+        config.arguments = ["--remote-debugging-address=127.0.0.1", "--remote-debugging-port=\(port)"]
+        config.createsNewApplicationInstance = !inBackground
+        config.activates = !inBackground
+        let launched = try await NSWorkspace.shared.openApplication(at: url, configuration: config)
+        defaults.set(port, forKey: "directBridgePort")
+        defaults.set(Int(launched.processIdentifier), forKey: "directBridgePID")
+        onChange?()
     }
 
     private static func availablePort() throws -> Int {

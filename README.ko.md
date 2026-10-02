@@ -5,6 +5,22 @@
 Codex의 **남은 사용량**과 **모델 전환 단축키**를 한곳에서 관리하는 macOS 메뉴 막대 앱입니다.
 모델 선택창을 열지 않고 현재 채팅의 모델과 추론 강도를 함께 바꿉니다. Stream Deck 같은 별도 하드웨어는 필요하지 않습니다.
 
+## 화면 예시
+
+### 앱 메뉴
+
+<img src="docs/app-menu.png" alt="사용량과 단축키 다섯 개, 별도 Model Presets 메뉴, 자동 실행 옵션을 보여 주는 Codex-Usage 메뉴" width="560" />
+
+사용자가 촬영한 0.5.0 앱의 메뉴입니다. 단축키 다섯 개는 한 묶음이며, 프리셋 편집은 별도 하위 메뉴에 있습니다. 주간 한도만 있을 때는 `1w` 대신 `Usage`로 표시합니다.
+
+### 메뉴 막대 사용량
+
+<img src="docs/menu-bar-preview.png" alt="하나의 초록색 게이지로 남은 사용량 94퍼센트를 표시하는 Codex-Usage 메뉴 막대" width="185" />
+
+사용자가 촬영한 주간 한도 화면입니다. 초록색 게이지의 94는 남은 사용량 94%를 뜻하며, 옆의 Codex 아이콘은 Codex 앱 자체의 아이콘입니다. 수치는 로컬 Codex 사용량 기록에 따라 갱신됩니다.
+
+---
+
 ## 기본 단축키
 
 `⌘`는 Command, `⌃`는 Control입니다. 두 키를 누른 상태에서 숫자를 눌렀다 떼세요.
@@ -69,26 +85,37 @@ Codex를 완전히 종료한 뒤 일반 실행하면 연결을 닫을 수 있습
 - 변경할 Codex 채팅을 클릭하고 `⌘⌃1`~`⌘⌃5`를 눌렀다 뗍니다. 성공 시 모델 선택 팝업이 열리지 않습니다.
 - 현재 입력창의 모델과 추론 강도를 함께 변경합니다. 이미 생성 중인 답변을 다시 실행하거나 메시지를 전송하지 않습니다. 변경된 설정은 이후 턴에 사용됩니다.
 - 작성 중인 프롬프트를 입력하거나 지우지 않습니다. Codex가 별도 확인을 요구하면 해당 확인을 완료한 뒤 다시 실행하세요.
-- **Launch at Login**을 켜면 로그인할 때 보조 앱이 시작됩니다. Codex의 디버깅 연결까지 자동으로 켜는 기능은 아닙니다.
+- **Launch at Login**과 **Open Codex Automatically**를 켜면 로그인 시 보조 앱이 시작되고, Codex가 닫혀 있다면 연결 모드로 자동 실행됩니다. 최초 직접 연결을 한 번 완료해야 하며, 이미 연결한 사용자는 Codex 자동 실행이 기본으로 켜집니다.
 - Codex를 Dock에서 다시 실행하거나 업데이트해 연결이 끊기면 **Enable Direct Switching…**으로 다시 연결합니다.
+
+### 로그인할 때 자동으로 연결하기
+
+1. 위의 직접 전환 연결을 한 번 완료합니다.
+2. 메뉴에서 **Launch at Login**과 **Open Codex Automatically** 두 항목에 체크가 있는지 확인합니다.
+3. 다음 로그인 때 Codex-Usage가 시작되면서 Codex를 로컬 연결 옵션으로 엽니다. 별도 연결 버튼을 누를 필요가 없습니다.
+
+Codex가 이미 연결 모드로 실행 중이면 그대로 사용합니다. 다른 경로로 실행된 Codex가 먼저 열려 있으면 작업 보호를 위해 자동으로 종료하지 않고 재연결 안내를 표시합니다.
+이 경우 작업을 마친 뒤 **Enable Direct Switching…**을 사용하세요. 자동 실행은 보조 앱이 시작될 때 한 번만 시도하며, 사용자가 Codex를 닫아도 계속 다시 열지 않습니다.
+**Open Codex Automatically**를 끄면 사용량 앱만 자동 실행할 수 있습니다. Codex가 이미 열린 상태에서 옵션을 켜도 강제로 재시작하지 않습니다.
 
 ### 메뉴 안내
 
 | 메뉴 | 하는 일 |
 | --- | --- |
+| Refresh Usage | 로컬 사용량 기록 즉시 다시 읽기 |
 | 모델 프리셋 5개 | 현재 Codex 채팅에 해당 설정 적용. Codex가 맨 앞에 있어야 합니다. |
 | Enable Direct Switching… | Codex 재시작과 직접 전환 연결 설정 |
-| Edit Presets… | 모델·추론 강도를 수정할 JSON 파일 열기 |
-| Reload Presets | 저장된 JSON을 다시 읽어 메뉴 갱신 |
+| Model Presets → Edit Presets… | 모델·추론 강도를 수정할 JSON 파일 열기 |
+| Model Presets → Reload Presets | 저장된 JSON을 다시 읽어 메뉴 갱신 |
 | Launch at Login | 보조 앱의 로그인 시 자동 실행 켜기/끄기 |
-| Refresh Usage | 로컬 사용량 기록 즉시 다시 읽기 |
+| Open Codex Automatically | 보조 앱 시작 시 Codex를 연결 모드로 열기. 최초 연결 후 사용 가능 |
 | Quit Codex-Usage | 보조 앱 종료. Codex의 디버깅 연결을 닫으려면 Codex도 종료 후 일반 실행하세요. |
 
 ## 4. 원하는 모델로 커스텀하기
 
-1. 메뉴에서 **Edit Presets…**를 누릅니다.
+1. 메뉴에서 **Model Presets → Edit Presets…**를 누릅니다.
 2. 텍스트 편집기에서 `model`과 `effort`를 바꿉니다. 숫자 위치를 바꾸려면 `slot`에 해당 번호를 지정합니다.
-3. 파일을 저장합니다. 다음 단축키 실행부터 자동으로 다시 읽습니다. 메뉴도 바로 갱신하려면 **Reload Presets**를 누릅니다.
+3. 파일을 저장합니다. 다음 단축키 실행부터 자동으로 다시 읽습니다. 메뉴도 바로 갱신하려면 **Model Presets → Reload Presets**를 누릅니다.
 
 설정 파일 위치:
 
@@ -158,7 +185,7 @@ JSON에는 주석이나 마지막 항목 뒤의 쉼표를 넣을 수 없습니�
 ## 5. 사용량 보기
 
 게이지는 **사용한 비율이 아닌 남은 비율**을 표시합니다. Codex가 반환한 한도만 보여 줍니다.
-주간 한도만 있으면 하나, 두 한도가 있으면 두 개입니다. 월간 항목을 고정으로 표시하지 않습니다.
+주간 한도만 있으면 `Usage` 한 줄과 게이지 하나를 표시합니다. 여러 한도가 실제로 보고될 때만 기간을 함께 표시해 구분하며, 월간 항목을 고정으로 만들지 않습니다.
 
 - 30초마다 로컬 기록을 확인합니다. **Refresh Usage**로 즉시 새로고침할 수 있습니다.
 - **Data as of**는 사용량 이벤트가 기록된 시각입니다. 새로고침 버튼을 누른 시각이 아닙니다.
@@ -194,14 +221,14 @@ JSON에는 주석이나 마지막 항목 뒤의 쉼표를 넣을 수 없습니�
 **업데이트:** 메뉴에서 Quit Codex-Usage → `/Applications`의 앱 교체 → 새 앱 실행 순서입니다. JSON은 앱 밖에 있어 유지됩니다.
 Codex도 업데이트·재시작했다면 직접 전환 연결을 다시 설정하세요.
 
-**삭제:** Launch at Login을 끄고 보조 앱을 종료한 뒤 앱을 휴지통으로 옮깁니다.
+**삭제:** Launch at Login과 Open Codex Automatically를 끄고 보조 앱을 종료한 뒤 앱을 휴지통으로 옮깁니다.
 설정도 삭제하려면 `~/Library/Application Support/Codex-Usage` 폴더를 제거합니다.
 디버깅 연결을 닫으려면 Codex를 종료하고 일반 실행하세요. 직접 추가한 Codex 키 바인딩은 별도로 복원합니다.
 
 ## 호환성·개발·배포
 
 Codex **26.928.31416**에서 **0.3.1의 직접 전환이 실제로 작동한다는 사용자 확인**을 받았습니다(2026-10-02).
-0.4.0은 동일한 전환 방식을 유지하고 5개 기본 프리셋과 설정 이전을 추가합니다.
+0.4.0은 5개 기본 프리셋과 설정 이전을, 0.5.0은 로그인 시 Codex 자동 실행과 메뉴 정리를 추가합니다.
 계정별 Ultra 지원이나 모든 창·입력 상태에서의 동작을 보장하는 것은 아닙니다. 내부 구조를 사용하므로 Codex 업데이트 후 수정이 필요할 수 있습니다.
 [구현과 검증 범위](docs/model-switching.md) · [기여 안내](CONTRIBUTING.md) · [보안](SECURITY.md)
 
@@ -212,10 +239,12 @@ swift run CodexUsage --validate-presets presets.example.json
 swift run CodexUsage --print
 swift run CodexUsage --default-presets
 swift run CodexUsage --check-direct-resources
+/Applications/Codex-Usage.app/Contents/MacOS/CodexUsage --startup-status
 ./Scripts/package_app.sh
 ditto -c -k --norsrc --keepParent Codex-Usage.app Codex-Usage-macos.zip
 ```
 
+`--startup-status`는 설치된 앱의 로그인·Codex 자동 실행·최초 연결 설정 상태를 보여 줍니다.
 `--print`는 로컬 사용량, `--default-presets`는 기본 JSON, `--check-direct-resources`는 번들 리소스 상태를 출력합니다.
 `CODEX_USAGE_OUTPUT_DIR`로 앱 출력 폴더를 지정하거나 `CODEX_USAGE_SIGN_IDENTITY`로 설치된 서명 인증서를 사용할 수 있습니다.
 GitHub에 `v*` 태그를 푸시하면 릴리즈 워크플로가 실행됩니다. 일반 커밋만으로는 릴리즈가 게시되지 않습니다.

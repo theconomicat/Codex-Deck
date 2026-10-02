@@ -5,6 +5,22 @@
 A macOS menu bar companion for **remaining Codex quota** and **model preset shortcuts**.
 Change the current chat's model and reasoning effort together without opening the model picker. No Stream Deck hardware is required.
 
+## Preview
+
+### App menu
+
+<img src="docs/app-menu.png" alt="Codex-Usage menu grouping five shortcuts with separate preset settings and automatic launch options" width="560" />
+
+User-provided screenshot of the running 0.5.0 app. All five shortcuts form one group; preset editing lives in a separate submenu. A single weekly quota is labeled `Usage` instead of `1w`.
+
+### Menu bar usage
+
+<img src="docs/menu-bar-preview.png" alt="Codex-Usage menu bar showing 94 percent remaining in a single green quota ring" width="185" />
+
+User-provided screenshot of a weekly-only account: the green ring shows 94% remaining. The adjacent Codex icon belongs to Codex itself. Values update from local Codex usage events.
+
+---
+
 ## Default shortcuts
 
 Hold **Command + Control**, press a number, then release it.
@@ -69,26 +85,37 @@ Fully quit Codex and launch it normally to close that connection.
 - Focus the desired Codex chat and press/release `⌘⌃1` through `⌘⌃5`. Successful switching does not open a model popup.
 - Both the model and reasoning effort change for subsequent turns. The companion does not restart an answer already generating or send a message.
 - Your unfinished prompt is preserved. If Codex requires confirmation, complete its confirmation and retry.
-- **Launch at Login** starts the companion when you sign in. It does not automatically enable Codex debugging.
+- Enable **Launch at Login** and **Open Codex Automatically** to start the companion at login and open a closed Codex app with direct switching. Complete initial setup once; Codex auto-launch defaults to on for users who have already connected.
 - If a normal Dock launch or Codex update breaks the connection, use **Enable Direct Switching…** again.
+
+### Automatic connection at login
+
+1. Complete direct-switching setup once.
+2. Check both **Launch at Login** and **Open Codex Automatically** in the menu.
+3. At the next login, the companion opens Codex with its local connection options. You do not need to press the connection button again.
+
+An already connected Codex process is reused. If Codex has already launched normally, the companion preserves running work and shows a reconnection message instead of terminating it.
+Finish the work and use **Enable Direct Switching…** in that case. Auto-launch runs once when the companion starts; it does not repeatedly reopen Codex after you quit it.
+Turn off **Open Codex Automatically** to start only the usage companion. Turning it on does not forcibly restart an existing Codex session.
 
 ### Menu reference
 
 | Item | Action |
 | --- | --- |
+| Refresh Usage | Scan local usage records immediately. |
 | Five model presets | Apply that preset to the current chat; Codex must be foreground. |
 | Enable Direct Switching… | Set up the connection by restarting Codex. |
-| Edit Presets… | Open the JSON configuration. |
-| Reload Presets | Read saved JSON and refresh the menu. |
+| Model Presets → Edit Presets… | Open the JSON configuration. |
+| Model Presets → Reload Presets | Read saved JSON and refresh the menu. |
 | Launch at Login | Toggle companion startup at login. |
-| Refresh Usage | Scan local usage records immediately. |
+| Open Codex Automatically | Open a closed Codex app with direct switching when the companion starts; requires initial setup. |
 | Quit Codex-Usage | Quit the companion. To close debugging too, quit Codex and relaunch it normally. |
 
 ## 4. Customize your models
 
-1. Choose **Edit Presets…**.
+1. Choose **Model Presets → Edit Presets…**.
 2. Change `model` and `effort` in a text editor. Use `slot` to choose the shortcut number.
-3. Save. The next shortcut automatically reloads the file. Choose **Reload Presets** to update the menu immediately.
+3. Save. The next shortcut automatically reloads the file. Choose **Model Presets → Reload Presets** to update the menu immediately.
 
 The file is created at:
 
@@ -160,7 +187,7 @@ This command does not check your account's catalog. Runtime support is checked w
 ## 5. Read your usage
 
 The gauges show **remaining quota**, not used quota. Only windows actually reported by Codex appear:
-one for a weekly-only account, two if two limits are returned. There is no hard-coded monthly gauge.
+a weekly-only account gets one gauge and a `Usage` row. Durations appear only to distinguish multiple reported limits. There is no hard-coded monthly gauge.
 
 - Local records are checked every 30 seconds. **Refresh Usage** scans immediately.
 - **Data as of** is the source event's timestamp, not the time you pressed Refresh.
@@ -197,14 +224,14 @@ Remove the added `null` entries to restore defaults. The companion never install
 **Update:** choose Quit Codex-Usage, replace the app in `/Applications`, then launch the new copy.
 JSON lives outside the app and is preserved. Reconnect direct switching if Codex also updated or restarted.
 
-**Uninstall:** turn off Launch at Login, quit the companion, and move its app to Trash.
+**Uninstall:** turn off Launch at Login and Open Codex Automatically, quit the companion, and move its app to Trash.
 Optionally remove `~/Library/Application Support/Codex-Usage` to delete presets/backups.
 Quit and normally relaunch Codex to close debugging. Restore any Codex keybindings you changed separately.
 
 ## Compatibility, development, and releases
 
 A user confirmed **working direct switching in 0.3.1 with Codex 26.928.31416** on 2026-10-02.
-Version 0.4.0 keeps that switching path and adds five default presets and configuration migration.
+Version 0.4.0 adds five presets and migration; 0.5.0 adds Codex startup at login and a simpler menu, retaining that switching path.
 This does not establish Ultra availability for every account or coverage of every window/composer state.
 The integration uses internal structure and may need repair after Codex updates.
 [Implementation and verification](docs/model-switching.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
@@ -216,10 +243,12 @@ swift run CodexUsage --validate-presets presets.example.json
 swift run CodexUsage --print
 swift run CodexUsage --default-presets
 swift run CodexUsage --check-direct-resources
+/Applications/Codex-Usage.app/Contents/MacOS/CodexUsage --startup-status
 ./Scripts/package_app.sh
 ditto -c -k --norsrc --keepParent Codex-Usage.app Codex-Usage-macos.zip
 ```
 
+`--startup-status` reports the installed app’s login, Codex auto-launch, and initial connection settings.
 `--print` prints local usage, `--default-presets` prints default JSON, and `--check-direct-resources` validates the packaged script.
 Set `CODEX_USAGE_OUTPUT_DIR` to package elsewhere, or `CODEX_USAGE_SIGN_IDENTITY` to use an installed signing certificate.
 Pushing a `v*` tag triggers the release workflow. A normal commit does not publish a release.

@@ -4,6 +4,29 @@ import CodexUsageAutomation
 import Foundation
 import ServiceManagement
 
+if CommandLine.arguments.contains("--enable-launch-at-login") {
+    do {
+        if SMAppService.mainApp.status != .enabled { try SMAppService.mainApp.register() }
+        guard SMAppService.mainApp.status == .enabled else {
+            throw NSError(domain: "CodexUsage.Login", code: 1, userInfo: [NSLocalizedDescriptionKey:
+                "Approve Codex-Usage in System Settings → General → Login Items, then retry."])
+        }
+        print("Launch at Login enabled")
+        exit(0)
+    } catch {
+        fputs("\(error.localizedDescription)\n", stderr)
+        exit(1)
+    }
+}
+if CommandLine.arguments.contains("--startup-status") {
+    let configured = UserDefaults.standard.integer(forKey: "directBridgePort") != 0
+    let automatic = UserDefaults.standard.object(forKey: "autoLaunchCodex") as? Bool ?? configured
+    print("Launch at Login: \(SMAppService.mainApp.status == .enabled ? "enabled" : "not enabled")")
+    print("Open Codex Automatically: \(automatic ? "enabled" : "disabled")")
+    print("Direct switching configured: \(configured)")
+    exit(0)
+}
+
 if CommandLine.arguments.contains("--check-direct-resources") {
     do {
         try DirectModelSwitcher.validateResources()
@@ -77,7 +100,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in self?.refresh() }
         }
-        if directSetup.port == 0 || CommandLine.arguments.contains("--setup-direct-switching") { openDirectSwitching() }
+        if directSetup.port == 0 || CommandLine.arguments.contains("--setup-direct-switching") {
+            openDirectSwitching()
+        } else {
+            Task {
+                switchStatus = await directSetup.restoreOnStartup()
+                render()
+            }
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) { hotKeys.stop() }
@@ -126,15 +156,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 menu.addItem(withTitle: "No quota windows reported", action: nil, keyEquivalent: "")
             }
             for window in snapshot.windows {
-                menu.addItem(withTitle: SnapshotFormatter.menuLine(window), action: nil, keyEquivalent: "")
+                menu.addItem(withTitle: SnapshotFormatter.menuLine(window, showWindowLabel: snapshot.windows.count > 1), action: nil, keyEquivalent: "")
             }
             menu.addItem(withTitle: "Data as of \(snapshot.timestamp.formatted(date: .abbreviated, time: .shortened))",
                          action: nil, keyEquivalent: "")
         } else {
             menu.addItem(withTitle: "Reading Codex usage…", action: nil, keyEquivalent: "")
         }
+        add(menu, "Refresh Usage", #selector(refresh))
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Model presets · active Codex chat", action: nil, keyEquivalent: "")
         for preset in presets.configuration.presets.sorted(by: { $0.slot < $1.slot }) {
             let title = preset.title.count > 65 ? String(preset.title.prefix(62)) + "…" : preset.title
             let item = NSMenuItem(title: title, action: #selector(selectPresetFromMenu(_:)), keyEquivalent: "")
@@ -145,24 +175,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             item.title += "    ⌃⌘\(preset.slot)"
             menu.addItem(item)
         }
+        menu.addItem(.separator())
         if let switchStatus {
             let item = NSMenuItem(title: switchStatus, action: nil, keyEquivalent: "")
             item.toolTip = switchStatus
             menu.addItem(item)
         }
         add(menu, "Enable Direct Switching…", #selector(openDirectSwitching))
-        add(menu, "Edit Presets…", #selector(editPresets))
-        add(menu, "Reload Presets", #selector(reloadPresets))
+        let presetMenu = NSMenu(title: "Model Presets")
+        presetMenu.autoenablesItems = false
+        add(presetMenu, "Edit Presets…", #selector(editPresets))
+        add(presetMenu, "Reload Presets", #selector(reloadPresets))
         if let error = presets.error {
             let item = NSMenuItem(title: "Presets error — previous settings kept", action: #selector(showPresetError), keyEquivalent: "")
             item.target = self
             item.toolTip = error
-            menu.addItem(item)
+            presetMenu.addItem(item)
         }
+        let presetSettings = NSMenuItem(title: "Model Presets", action: nil, keyEquivalent: "")
+        presetSettings.submenu = presetMenu
+        menu.addItem(presetSettings)
         menu.addItem(.separator())
         let launch = add(menu, "Launch at Login", #selector(toggleLaunchAtLogin))
         launch.state = SMAppService.mainApp.status == .enabled ? .on : .off
-        add(menu, "Refresh Usage", #selector(refresh))
+        let autoLaunch = add(menu, "Open Codex Automatically", #selector(toggleCodexAutoLaunch))
+        autoLaunch.state = directSetup.autoLaunchEnabled ? .on : .off
+        autoLaunch.isEnabled = directSetup.port != 0
+        autoLaunch.toolTip = "Open Codex with direct switching when the companion starts. Running Codex sessions are never restarted automatically."
+        menu.addItem(.separator())
         add(menu, "Quit Codex-Usage", #selector(quit))
         return menu
     }
@@ -254,6 +294,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             showAlert("Could not update Launch at Login", "Move Codex-Usage.app to /Applications, then try again. \(error.localizedDescription)")
         }
+    }
+
+    @objc private func toggleCodexAutoLaunch() {
+        directSetup.autoLaunchEnabled.toggle()
+        render()
     }
 
     private func showAlert(_ title: String, _ message: String) {

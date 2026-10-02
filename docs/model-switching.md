@@ -1,8 +1,8 @@
-# Direct model switching in 0.4.0
+# Direct model switching in 0.5.0
 
 Status: **internal integration; working 0.3.1 switching confirmed by the user**
-on Codex 26.928.31416 (2026-10-02). Version 0.4.0 uses the same selection path,
-with five presets and legacy JSON migration. The implementation is independently
+on Codex 26.928.31416 (2026-10-02). Version 0.5.0 uses the same selection path,
+with five presets, legacy JSON migration, and optional startup connection. The implementation is independently
 written; no original Codex bundle code is redistributed.
 
 ## Runtime path
@@ -38,7 +38,14 @@ chat and server and perform its normal checks.
 The setup button restarts Codex, so users should finish running work first. A
 successful launch does not confirm that its Chromium runtime exposed debugging.
 The next preset checks the connection. A normal Dock launch may omit the options;
-use setup again if needed. Launch at Login starts only the companion.
+use setup again if needed. After initial setup, Open Codex Automatically defaults
+to on. At companion startup it launches a closed Codex in the background with a
+fresh loopback port. Launch at Login starts the companion, which then follows
+that preference. An already running, unrecognized Codex process is never
+terminated automatically; the menu requests manual reconnection instead.
+Launch success still does not prove the renderer accepted debugging; applying
+the next preset validates the connection. A startup-policy fixture verifies
+opt-out, missing setup, launch, reuse, and manual-reconnection decisions.
 
 The React composer shape and Chromium debugging support are internal details,
 not a stable Codex extension API. Unknown structure, ambiguous windows, missing
@@ -75,7 +82,7 @@ The direct-switching suite includes 27 JavaScript tests and four Swift tests
 confirmation refusal, unsupported model/effort, ambiguous or changing composers,
 hidden mounted pickers, stale React alternates, large trees, catalog loading,
 custom model names, focus loss, retained selection, CDP result validation, and target selection.
-Thirty-two other Swift tests cover usage parsing, five-slot defaults, migration, and the legacy
+Thirty-four other Swift tests cover usage parsing, startup policy, five-slot defaults, migration, and the legacy
 Accessibility flow. Tests use controlled fixtures, not a live Codex recording.
 
 Version 0.3.1 corrected composer discovery by mapping visible model controls to

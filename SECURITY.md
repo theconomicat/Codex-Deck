@@ -11,6 +11,12 @@ The user enables this experimental mode by clicking the restart button in
 remote debugging bound to `127.0.0.1` on a randomly selected port. Finish running
 work before restarting. Setup alone does not verify that the connection works.
 
+After initial setup, **Open Codex Automatically** defaults to on. When the
+companion starts (including login if Launch at Login is enabled), it can open a
+closed Codex app with the same local debugging options. It never automatically
+terminates an already running Codex. Turn this option off to stop future automatic
+launches. It does not continuously reopen Codex after you quit it.
+
 Remote debugging is a powerful, unauthenticated local interface. Other processes
 on this Mac may use it to inspect or execute code in the Codex renderer, including
 access to chat content. Loopback binding prevents direct access from another
