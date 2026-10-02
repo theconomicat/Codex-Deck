@@ -15,8 +15,8 @@ The remote is an operating surface for repeated model changes. Use the existing 
 
 ## Composition and behavior
 
-Show product name and connection status, then the active chat and usage, then five model keys. Phone layouts use two columns; wider layouts use three or five. Each key has its slot number, model, effort, and selected/applying state. Refresh and device disconnection remain secondary controls below the deck.
+Fill the dynamic viewport with six physical-style keys: five model presets and a remaining-usage ring. Landscape is 3 × 2; portrait is 2 × 3. No persistent header, footer, chat title, or hints. The usage key opens a native dialog for the active chat, usage details, fullscreen, sound, refresh, and disconnect. Pairing and failures appear only when needed.
 
 Use native buttons and semantic headings. Keep focus visible and touch controls at least 44px. Preserve focus across refreshes unless the preset definitions change. Never indicate success before the host confirms it.
 
-No entrance motion or decorative animation. Pointer press may scale a key slightly; keyboard input and reduced-motion mode remain still. Color and text communicate all states together. Error recovery stays inline.
+Graphite bevels and a dark lower edge express depth. A confirmed selection has a green face and indicator; pending uses amber. Press moves down 4px for 90ms; reduced motion removes movement. A short synthesized click and supported-device vibration occur only after a user gesture. Sound can be muted, audio suspends after each press, and there are no idle animations. Errors and changed-target notices are dismissible and screen-reader announced. The usage ring shows an em dash for absent, expired, or offline data.

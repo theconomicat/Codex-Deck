@@ -38,7 +38,7 @@ const server = http.createServer(async (req, res) => {
       return json(200, {
         csrf: 'fixture-csrf', connected: scenario !== 'unavailable', busy: scenario === 'busy',
         target: scenario === 'unavailable' ? null : { id: scenario === 'changed' ? 'fixture-chat-b' : 'fixture-chat-a', title: scenario === 'long' ? 'Fixture: a very long active chat title that should wrap cleanly on a narrow phone screen without hiding any controls' : 'Web remote · Fixture chat' },
-        presets, usage: '93% remaining · reset in 6d 22h', selection,
+        presets, usage: '93% remaining · reset in 6d 22h', usageMeter: { remainingPercent: 93 }, selection,
         message: scenario === 'unavailable' ? 'Open a Codex chat and enable Direct Switching on your Mac.' : undefined
       });
     }

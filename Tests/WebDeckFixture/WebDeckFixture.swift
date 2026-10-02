@@ -26,7 +26,8 @@ struct WebDeckFixture {
                 "presets": presets.map {
                     ["slot": $0.slot, "model": $0.model, "effort": $0.effort.rawValue, "title": $0.title] as [String: Any]
                 },
-                "usage": "Usage · 94% remaining · fixture data"
+                "usage": "Usage · 94% remaining · fixture data",
+                "usageMeter": ["remainingPercent": 94]
             ])
         }
         server.onPreset = { data in

@@ -14,7 +14,7 @@ Codex users change the Mac's active chat model from a phone or tablet on the sam
 
 ## Operating context
 
-The native companion remains the host and source of presets and usage. A browser pairs with that host before it can see chat details or perform actions. The active target and connection state must remain visible; a stale target must never silently receive an action.
+The native companion remains the host and source of presets and usage. A browser pairs with that host before it can see chat details or perform actions. The active target and connection state are available by tapping Usage; errors and changed targets produce a notice. A stale target must never silently receive an action.
 
 ## Constraints
 
@@ -26,4 +26,4 @@ The native companion remains the host and source of presets and usage. A browser
 
 ## Working assumptions
 
-The user's Stream Deck reference sets a compact button-grid interaction. The web remote follows the existing dark native menu and English interface labels. Touch targets and readable preset labels take precedence over keeping all content within a single phone viewport.
+The user's Stream Deck reference sets a compact button-grid interaction. The web remote follows the existing dark native menu and English interface labels. Five model keys and one circular usage tile fill a single viewport, primarily in landscape. The user explicitly requests physical key depth and press feedback without a persistent header or explanation.

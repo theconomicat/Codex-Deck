@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#141615">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="referrer" content="no-referrer">
   <title>Codex-Usage Web Deck</title>
   <link rel="icon" href="data:,">
@@ -12,38 +13,38 @@
   <script src="/deck.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#presets">Skip to model presets</a>
-  <main class="remote">
-    <header class="topbar">
-      <div class="brand"><span class="brand-mark" aria-hidden="true">C</span><h1>Codex-Usage <span>Web Deck</span></h1></div>
-      <p id="connection" class="connection" role="status"><span class="status-dot" aria-hidden="true"></span><span id="connection-label">Connecting</span></p>
-    </header>
-
-    <section id="pairing" class="pairing" aria-labelledby="pairing-title" hidden>
-      <h2 id="pairing-title">Connect to your Mac</h2>
-      <p>Open <strong>Web Deck</strong> in the Codex-Usage menu on your Mac, then open its pairing link on this device.</p>
-      <p class="secondary">Keep both devices on the same Wi-Fi. A new pairing link is needed when this session expires.</p>
-      <button id="retry-pairing" type="button" class="quiet-button">Check connection</button>
-    </section>
-
-    <div id="deck-content">
-      <section class="target-strip" aria-label="Current Codex chat">
-        <div class="target-copy"><p class="field-label">Active chat</p><p id="target-title" class="target-title">Waiting for Codex…</p></div>
-        <div class="usage-copy"><p class="field-label">Usage</p><p id="usage" class="usage">Waiting for usage…</p></div>
-      </section>
-
-      <section class="deck-section" aria-labelledby="presets-heading">
-        <div class="section-heading"><h2 id="presets-heading">Model presets</h2><button id="refresh" type="button" class="text-button">Refresh</button></div>
-        <div id="presets" class="deck-grid" tabindex="-1" aria-busy="true"></div>
-        <p id="deck-hint" class="deck-hint">Connecting to your Mac…</p>
-      </section>
-
+  <main class="remote" aria-label="Codex model deck">
+    <div id="presets" class="deck-grid" aria-label="Model presets and usage" aria-busy="true">
+      <button id="usage-key" type="button" class="deck-key usage-key" aria-label="Usage unavailable. Open deck controls" aria-haspopup="dialog">
+        <span class="key-top"><span>Usage</span><span class="settings-icon" aria-hidden="true">···</span></span>
+        <span class="usage-dial">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-track" cx="60" cy="60" r="52"/><circle id="usage-ring" class="ring-value" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="0 100"/></svg>
+          <span class="usage-reading"><span id="usage-value">—</span><span class="usage-caption">remaining</span></span>
+        </span>
+      </button>
     </div>
-
-    <p id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true" hidden></p>
-
-    <footer><p>Connected devices control the active chat on your Mac.</p><button id="logout" type="button" class="text-button" hidden>Disconnect this device</button></footer>
-    <noscript><p class="feedback">Enable JavaScript to use the remote.</p></noscript>
+    <section id="pairing" class="pairing" aria-labelledby="pairing-title" hidden>
+      <h1 id="pairing-title">Connect to your Mac</h1>
+      <p>Open Web Deck in the Codex-Usage menu on your Mac and scan a new pairing QR code.</p>
+      <p class="secondary">Keep both devices on the same Wi-Fi.</p>
+      <button id="retry-pairing" type="button" class="control-button">Check connection</button>
+    </section>
+    <div id="notice" class="notice" hidden><p id="notice-text"></p><button id="dismiss-notice" type="button" aria-label="Dismiss notification">×</button></div>
+    <p id="feedback" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+    <noscript><p class="notice">Enable JavaScript to use the deck.</p></noscript>
   </main>
+  <dialog id="controls" aria-labelledby="controls-title">
+    <div class="dialog-heading"><h2 id="controls-title">Deck controls</h2><button id="close-controls" type="button" aria-label="Close controls">×</button></div>
+    <p id="connection-label" class="secondary">Connecting</p>
+    <p class="field-label">Active chat</p><p id="target-title">Waiting for Codex…</p>
+    <p id="usage-details" class="secondary"></p>
+    <div class="control-grid">
+      <button id="fullscreen" type="button" class="control-button">Enter full screen</button>
+      <button id="sound" type="button" class="control-button" aria-pressed="true">Sound on</button>
+      <button id="refresh" type="button" class="control-button">Refresh</button>
+      <button id="logout" type="button" class="control-button" hidden>Disconnect</button>
+    </div>
+    <p id="fullscreen-help" class="secondary" hidden></p>
+  </dialog>
 </body>
 </html>

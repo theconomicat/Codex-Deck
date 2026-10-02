@@ -21,9 +21,11 @@ User-provided screenshot of a weekly-only account: the green ring shows 94% rema
 
 ### Phone Web Deck
 
-<img src="docs/web-deck-mobile.png" alt="Five model preset buttons in an offline Web Deck fixture labeled Fixture chat — offline UI verification" width="320" />
+<img src="docs/web-deck-landscape.png" alt="Landscape Web Deck: five raised model keys and a circular remaining-usage tile" width="844" />
 
-Synthetic offline browser fixture at mobile size, visibly labeled `Fixture chat — offline UI verification`. This illustrates the interface; it is not a screenshot of a real phone controlling live Codex.
+<img src="docs/web-deck-mobile.png" alt="The same six-key deck arranged in two columns for portrait use" width="260" />
+
+Version 0.7.0, rendered with synthetic offline fixture data (94% remaining). These landscape and portrait previews illustrate the interface; they are not photos of a phone controlling live Codex.
 
 ---
 
@@ -110,13 +112,19 @@ Turn off **Open Codex Automatically** to start only the usage companion. Turning
 2. Connect the Mac and phone to the **same trusted private Wi-Fi**. Keep the Mac awake and Codex-Usage running.
 3. Choose **Web Deck… → Start Web Deck** in the Mac menu. This starts a small local HTTP server; it is off by default and does not start automatically at login.
 4. Scan the QR code with your phone, or choose **Copy Pairing Link** and open that complete link in the phone's browser. The bare IP address opens the page but does not pair a device.
-5. Check the chat name displayed on the phone, then tap one of the five model buttons. The page uses the same `presets.json` as the keyboard shortcuts and reports whether the model and effort were confirmed.
+5. Tap **Usage** to review the active chat, close the controls, then tap a model key. The page uses the first five configured presets in slot order from the same `presets.json` as the keyboard shortcuts. A key turns green after the host confirms the selection.
+6. Rotate the phone for **3 × 2 landscape**; portrait uses **2 × 3**. Five model keys and a usage tile fill the viewport without a header or footer.
+7. Tap **Usage → Enter full screen** in supported browsers. On iPhone, use Safari's **Share → Add to Home Screen** and open the saved deck; pair again if that standalone browser has a separate session.
+
+Keys have a raised edge and short press effect, with a quiet click and vibration where the browser/device allows them. **Usage → Sound on/off** toggles sound and remembers the preference where browser storage is available. Audio starts only after a tap and suspends after each click. Reduced-motion preferences disable key movement. Hardware vibration and fullscreen support vary; unsupported feedback does not block switching.
+
+The sixth tile shows **remaining** quota, prioritizing the weekly window (otherwise the first available window). Tap it for full usage details and reset information. Missing or expired quota, or a lost connection, displays **—**. Connection and error notices appear only when needed.
 
 A pairing link expires after **5 minutes** and can be used **once**. Choose **New Pairing Link** for another device or an expired link; existing paired devices stay connected. Each paired browser session lasts up to **8 hours**. Keep pairing links private.
 
-**Disconnect All Devices** revokes every session and creates a fresh link. **Stop Web Deck** closes the server and revokes all sessions. Closing only its settings window keeps it running. After a companion restart, start Web Deck and pair again; neither the server state nor sessions are saved. A phone can also use **Disconnect** to end its own session.
+**Disconnect All Devices** revokes every session and creates a fresh link. **Stop Web Deck** closes the server and revokes all sessions. Closing only its settings window keeps it running. After a companion restart, start Web Deck and pair again; neither the server state nor sessions are saved. A phone can also use **Usage → Disconnect** to end its own session.
 
-If the active chat or a preset changes before a tap is applied, the request is rejected. Refresh, check the displayed chat, and try again. New unsaved drafts and ambiguous composers are not remote targets. Web Deck currently changes models only; it does not send messages, approve requests, or answer Codex questions.
+If the active chat or a preset changes before a tap is applied, the request is rejected. Open **Usage**, refresh, check the active chat, and try again. New unsaved drafts and ambiguous composers are not remote targets. Web Deck currently changes models only; it does not send messages, approve requests, or answer Codex questions.
 
 The phone connection is **HTTP on the local network**, not an Internet service. Pairing does not encrypt traffic: use a network you trust, do not forward the port, and read [Security](SECURITY.md). If macOS asks, allow Codex-Usage's local-network access or incoming connection. Guest Wi-Fi/client isolation can prevent devices from reaching each other. Web Deck needs a private IPv4 address (`10.x.x.x`, `172.16–31.x.x`, or `192.168.x.x`); a displayed `127.0.0.1` address works only on the Mac. After changing networks, stop and start Web Deck to obtain a new address and pairing link.
 
@@ -261,6 +269,7 @@ Quit and normally relaunch Codex to close debugging. Restore any Codex keybindin
 A user confirmed **working direct switching in 0.3.1 with Codex 26.928.31416** on 2026-10-02.
 Version 0.4.0 adds five presets and migration; 0.5.0 adds Codex startup at login and a simpler menu, retaining that switching path.
 Version 0.6.0 adds the opt-in Web Deck and incremental usage reads. Its HTTP server, browser UI, and model bridge were checked with isolated fixtures; actual phone-to-Codex switching was not agent-tested.
+Version 0.7.0 adds six tactile keys, landscape/fullscreen support, optional sound, and a numeric remaining-usage ring. Responsive and interaction checks used an offline browser fixture; physical-phone sound and vibration were not measured.
 This does not establish Ultra availability for every account or coverage of every window/composer state.
 The integration uses internal structure and may need repair after Codex updates.
 [Implementation and verification](docs/model-switching.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)

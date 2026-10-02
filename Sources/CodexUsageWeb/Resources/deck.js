@@ -134,7 +134,7 @@
           this.state.phase = snapshot.connected ? "ready" : "unavailable";
           if (this.state.feedback?.source === "connection") this.state.feedback = null;
           if (previousTarget && previousTarget !== snapshot.target?.id) {
-            this.state.feedback = { tone: "info", message: "The active chat changed. Presets now apply to the chat shown above." };
+            this.state.feedback = { tone: "info", message: "The active chat changed. Open Usage to review the target chat." };
           }
         } catch (error) {
           this.setError(error);
@@ -213,10 +213,62 @@
     stop() { this.stopped = true; this.clearTimer(); }
   }
 
+  function usagePercent(meter, now = Date.now()) {
+    const value = meter?.remainingPercent;
+    if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 100) return null;
+    if (typeof meter.resetsAt === "number" && meter.resetsAt * 1000 <= now) return null;
+    return value;
+  }
+
+  // Audio exists only after a user gesture, and is suspended after each short click.
+  function pressFeedback(window) {
+    let sound = true;
+    let audio, suspendTimer;
+    try { sound = window.localStorage.getItem("deck-sound") !== "off"; } catch (_) {}
+    const play = () => {
+      try { window.navigator.vibrate?.(12); } catch (_) {}
+      if (!sound) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      try {
+        audio ||= new AudioContext();
+        clearTimeout(suspendTimer);
+        void audio.resume().then(() => {
+          const oscillator = audio.createOscillator();
+          const gain = audio.createGain();
+          const now = audio.currentTime;
+          oscillator.type = "triangle";
+          oscillator.frequency.setValueAtTime(360, now);
+          oscillator.frequency.exponentialRampToValueAtTime(110, now + 0.025);
+          gain.gain.setValueAtTime(0.09, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+          oscillator.connect(gain); gain.connect(audio.destination);
+          oscillator.start(now); oscillator.stop(now + 0.04);
+          oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+          suspendTimer = setTimeout(() => { void audio.suspend().catch(() => {}); }, 100);
+        }).catch(() => {});
+      } catch (_) { /* A browser without audio still has visual key feedback. */ }
+    };
+    return {
+      play,
+      get enabled() { return sound; },
+      toggle() {
+        sound = !sound;
+        try { window.localStorage.setItem("deck-sound", sound ? "on" : "off"); } catch (_) {}
+        if (sound) play();
+      },
+      suspend() { if (audio) void audio.suspend().catch(() => {}); }
+    };
+  }
+
   function mount(document, controller) {
     const byID = id => document.getElementById(id);
     const grid = byID("presets");
+    const usageKey = byID("usage-key");
+    const controls = byID("controls");
+    const tactile = pressFeedback(document.defaultView);
     let presetSignature = "";
+    let dismissedNotice = "";
     let keys = [];
     const element = (tag, className, text) => {
       const node = document.createElement(tag);
@@ -228,40 +280,51 @@
       const { snapshot, phase, busy, feedback } = state;
       const pairing = phase === "pairing";
       byID("pairing").hidden = !pairing;
-      byID("deck-content").hidden = pairing;
+      grid.hidden = pairing;
+      if (pairing && controls.open) controls.close();
       byID("logout").hidden = !controller.csrf;
       byID("logout").disabled = busy;
       byID("refresh").disabled = busy;
       byID("retry-pairing").disabled = busy;
-      byID("connection").dataset.state = phase;
       byID("connection-label").textContent = { loading: "Connecting", pairing: "Not paired", ready: "Connected", unavailable: "Codex unavailable", offline: "Offline" }[phase];
-      byID("target-title").textContent = snapshot?.target?.title || (phase === "loading" ? "Waiting for Codex…" : "Open a chat on your Mac");
-      byID("target-title").title = snapshot?.target?.title || "";
-      byID("usage").textContent = snapshot?.usage?.replace(/^Usage\s*·\s*/, "") || "Usage unavailable";
-      byID("feedback").hidden = !feedback;
-      byID("feedback").dataset.tone = feedback?.tone || "info";
-      byID("feedback").textContent = feedback?.message || "";
-      const presets = snapshot?.presets || [];
+      byID("target-title").textContent = snapshot?.target?.title || "Open a chat on your Mac";
+      byID("usage-details").textContent = snapshot?.usage || "Usage unavailable";
+      const percent = phase === "offline" ? null : usagePercent(snapshot?.usageMeter);
+      const value = percent === null ? "—" : `${Math.round(percent)}%`;
+      byID("usage-value").textContent = value;
+      byID("usage-ring").setAttribute("stroke-dasharray", `${percent ?? 0} 100`);
+      usageKey.dataset.level = percent === null ? "unknown" : percent < 10 ? "low" : percent < 25 ? "medium" : "normal";
+      usageKey.setAttribute("aria-label", `${percent === null ? "Usage unavailable" : `${value} remaining`}. Open deck controls`);
+      let message = feedback?.tone !== "success" ? feedback?.message : "";
+      if (!message && phase === "offline") message = "Connection lost. Reconnecting…";
+      if (!message && phase === "unavailable") message = snapshot?.message || "Open a Codex chat and enable Direct Switching on your Mac.";
+      byID("notice").hidden = !message || message === dismissedNotice;
+      byID("notice").dataset.tone = feedback?.tone || "info";
+      byID("notice-text").textContent = message || "";
+      byID("feedback").textContent = feedback?.message || message || "";
+      const presets = (snapshot?.presets || []).slice(0, 5);
       const signature = JSON.stringify(presets);
       if (signature !== presetSignature) {
         presetSignature = signature;
         keys = presets.map(preset => {
-          const button = element("button", "deck-key");
+          const button = element("button", "deck-key model-key");
           button.type = "button";
           const top = element("span", "key-top");
-          const status = element("span", "key-status");
-          top.append(element("span", "key-number", String(preset.slot).padStart(2, "0")), status);
+          const status = element("span", "sr-only");
+          const led = element("span", "key-led");
+          led.setAttribute("aria-hidden", "true");
+          top.append(element("span", "key-number", String(preset.slot).padStart(2, "0")), led, status);
           const name = modelLabel(preset.model);
           const effort = effortLabels[preset.effort] || preset.effort;
           button.append(top, element("span", "key-model", name), element("span", "key-effort", effort));
           button.setAttribute("aria-label", `${preset.slot}: ${preset.title || `${name}, ${effort}`}`);
-          button.addEventListener("click", () => void controller.applyPreset(preset));
+          button.addEventListener("click", () => { tactile.play(); void controller.applyPreset(preset); });
           return { button, status, preset };
         });
-        grid.replaceChildren(...keys.map(key => key.button));
+        grid.replaceChildren(...keys.map(key => key.button), usageKey);
       }
       for (const { button, status, preset } of keys) {
-        const selected = isPresetSelected(snapshot?.selection, preset);
+        const selected = phase === "ready" && isPresetSelected(snapshot?.selection, preset);
         const applying = state.applyingSlot === preset.slot;
         button.disabled = !controller.canApply();
         button.setAttribute("aria-pressed", String(selected));
@@ -269,18 +332,40 @@
         status.textContent = applying ? "Applying…" : selected ? "Selected" : "";
       }
       grid.setAttribute("aria-busy", String(phase === "loading" || busy));
-      byID("deck-hint").textContent = busy ? "Waiting for confirmation from your Mac…"
-        : snapshot?.busy ? "A change is in progress on your Mac. Please wait."
-        : phase === "offline" ? "Connection lost. Reconnecting while this page is open…"
-        : snapshot?.message || (controller.canApply() ? "Tap a key to change the active chat. Focus a key to use 1–5." : "Open a Codex chat and enable Direct Switching on your Mac.");
     };
-    byID("refresh").addEventListener("click", () => void controller.refresh());
-    byID("retry-pairing").addEventListener("click", () => void controller.refresh());
+    const updateSound = () => {
+      byID("sound").textContent = tactile.enabled ? "Sound on" : "Sound off";
+      byID("sound").setAttribute("aria-pressed", String(tactile.enabled));
+    };
+    updateSound();
+    usageKey.addEventListener("click", () => { tactile.play(); controls.showModal(); });
+    byID("close-controls").addEventListener("click", () => controls.close());
+    byID("sound").addEventListener("click", () => { tactile.toggle(); updateSound(); });
+    byID("fullscreen").addEventListener("click", async () => {
+      const help = byID("fullscreen-help");
+      if (!document.fullscreenEnabled) {
+        help.textContent = "Full screen is unavailable in this browser. On iPhone, use Safari’s Share → Add to Home Screen, then open the saved deck. Rotate your device for landscape.";
+        help.hidden = false;
+        return;
+      }
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else await document.documentElement.requestFullscreen();
+        controls.close();
+      } catch (_) { help.textContent = "Full screen could not open. Try your browser’s full-screen control."; help.hidden = false; }
+    });
+    document.addEventListener("fullscreenchange", () => {
+      byID("fullscreen").textContent = document.fullscreenElement ? "Exit full screen" : "Enter full screen";
+    });
+    byID("dismiss-notice").addEventListener("click", () => { dismissedNotice = byID("notice-text").textContent; byID("notice").hidden = true; });
+    byID("refresh").addEventListener("click", () => { dismissedNotice = ""; void controller.refresh(); });
+    byID("retry-pairing").addEventListener("click", () => { dismissedNotice = ""; void controller.refresh(); });
     byID("logout").addEventListener("click", () => void controller.logout());
-    document.addEventListener("visibilitychange", () => controller.visibilityChanged());
-    document.addEventListener("pointerdown", () => { document.documentElement.dataset.input = "pointer"; });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) tactile.suspend();
+      controller.visibilityChanged();
+    });
     document.addEventListener("keydown", event => {
-      document.documentElement.dataset.input = "keyboard";
       if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !grid.contains(event.target)) return;
       const key = keys.find(item => String(item.preset.slot) === event.key);
       if (key && !key.button.disabled) { event.preventDefault(); key.button.click(); }
@@ -289,7 +374,7 @@
   }
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { DeckController, consumePairingToken, modelLabel, isPresetSelected, POLL_INTERVAL };
+    module.exports = { DeckController, consumePairingToken, modelLabel, isPresetSelected, usagePercent, POLL_INTERVAL };
   } else {
     const token = consumePairingToken(window.location, window.history);
     let render = () => {};

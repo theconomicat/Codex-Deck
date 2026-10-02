@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { DeckController, consumePairingToken, isPresetSelected, POLL_INTERVAL } = require('../../Sources/CodexUsageWeb/Resources/deck.js');
+const { DeckController, consumePairingToken, isPresetSelected, usagePercent, POLL_INTERVAL } = require('../../Sources/CodexUsageWeb/Resources/deck.js');
 
 const preset = { slot: 1, model: 'gpt-6-astra', effort: 'ultra', title: 'GPT-6 Astra · Ultra' };
 function snapshot(overrides = {}) {
@@ -178,4 +178,17 @@ test('logout waits for the current poll, clears state and stops polling', async 
   assert.equal(h.controller.state.phase, 'pairing');
   assert.equal(h.controller.state.snapshot, null);
   assert.equal(h.timers.size, 0);
+});
+
+
+test('usage ring preserves zero and rejects unknown, invalid or expired readings', () => {
+  assert.equal(usagePercent({ remainingPercent: 0 }), 0);
+  assert.equal(usagePercent({ remainingPercent: 94.6 }), 94.6);
+  assert.equal(usagePercent({ remainingPercent: 100 }), 100);
+  for (const remainingPercent of [null, undefined, NaN, Infinity, -1, 101, "94"]) {
+    assert.equal(usagePercent({ remainingPercent }), null);
+  }
+  assert.equal(usagePercent(undefined), null);
+  assert.equal(usagePercent({ remainingPercent: 94, resetsAt: 10 }, 10000), null);
+  assert.equal(usagePercent({ remainingPercent: 94, resetsAt: 11 }, 10000), 94);
 });

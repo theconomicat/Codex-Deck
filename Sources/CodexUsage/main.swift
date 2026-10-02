@@ -322,7 +322,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 ["slot": $0.slot, "model": $0.model, "effort": $0.effort.rawValue, "title": $0.title] as [String: Any]
             }
         ]
-        if let snapshot = latestSnapshot { payload["usage"] = SnapshotFormatter.textSummary(snapshot) }
+        if let snapshot = latestSnapshot {
+            payload["usage"] = SnapshotFormatter.textSummary(snapshot)
+            // Match the weekly quota when present; other plans use their first window.
+            if latestError == nil,
+               let window = snapshot.windows.first(where: { $0.windowMinutes == 10080 }) ?? snapshot.windows.first,
+               !window.isExpired() {
+                var meter: [String: Any] = ["remainingPercent": window.remainingPercent]
+                if let reset = window.resetsAt { meter["resetsAt"] = reset.timeIntervalSince1970 }
+                payload["usageMeter"] = meter
+            }
+        }
         do {
             let state = try await deckBridge().deckState()
             payload["connected"] = true
