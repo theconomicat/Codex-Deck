@@ -14,6 +14,7 @@ public struct DeckState: Codable, Sendable {
     public let model: String
     public let effort: String
     public let models: [DeckModel]?
+    public let activity: String?
     public let dictation: DeckDictation?
     public let pending: [DeckPendingRequest]?
     public let pendingUnavailable: String?

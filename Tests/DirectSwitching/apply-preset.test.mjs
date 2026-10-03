@@ -195,7 +195,7 @@ test('Web Deck reports saved chat controls without transcript or private drafts'
   assert.deepEqual(state, { targetID: 'chat-1', title: 'Fixture chat', model: 'gpt-6-astra', effort: 'xhigh',
     models: [{ id: 'gpt-6-astra', name: 'GPT-6 Astra', efforts: ['ultra', 'xhigh', 'high'] },
       { id: 'gpt-6.1-sol', name: 'GPT-6.1 Sol', efforts: ['xhigh', 'high'] }],
-    dictation: { available: false, recording: false, owned: false }, pending: [] });
+    activity: 'unknown', dictation: { available: false, recording: false, owned: false }, pending: [] });
   assert.equal(f.calls.length, 0);
 });
 
@@ -592,4 +592,59 @@ test('inspecting a different chat cannot stop the original recording or lose its
   assert.equal(f.deckState().dictation.owned, true);
   await f.action({ type: 'dictation', targetID: 'chat-1', recording: false });
   assert.deepEqual(v.calls, [['start', 'tap'], ['stop', 'insert']]);
+});
+
+
+// Status fixtures reproduce Codex's conversation row -> statusState props.
+function activityRow(f, status, conversationId = 'chat-1') {
+  const row = { memoizedProps: { conversationId }, child: { memoizedProps: { statusState: status } } };
+  row.sibling = f.owner.sibling;
+  f.owner.sibling = row;
+  return row;
+}
+for (const [status, expected] of [
+  [{ type: 'idle', unread: false }, 'idle'],
+  [{ type: 'idle', unread: true }, 'complete'],
+  [{ type: 'loading', unread: false }, 'thinking'],
+  [{ type: 'loading', unread: true }, 'thinking'],
+  [{ type: 'error', unread: true }, 'error']
+]) test(`chat frame reads native ${expected} state without invoking a callback`, () => {
+  const f = fixture(); activityRow(f, status);
+  assert.equal(f.deckState().activity, expected);
+  assert.equal(f.calls.length, 0);
+});
+test('missing, unsupported and conflicting status props stay unknown', () => {
+  const f = fixture();
+  assert.equal(f.deckState().activity, 'unknown');
+  const row = activityRow(f, { type: 'future-status', unread: false });
+  assert.equal(f.deckState().activity, 'unknown');
+  row.child.memoizedProps.statusState = { type: 'idle', unread: false };
+  activityRow(f, { type: 'loading', unread: false });
+  assert.equal(f.deckState().activity, 'unknown');
+});
+test('another chat and a nested draft cannot supply this chat status', () => {
+  const f = fixture();
+  activityRow(f, { type: 'error', unread: true }, 'other-chat');
+  const row = activityRow(f, { type: 'idle', unread: false });
+  row.child.memoizedProps.conversationId = null;
+  assert.equal(f.deckState().activity, 'unknown');
+  delete row.child.memoizedProps.conversationId;
+  assert.equal(f.deckState().activity, 'idle');
+});
+test('mounted requests take priority, including unsupported Mac-only requests', () => {
+  const f = fixture(); activityRow(f, { type: 'loading', unread: false });
+  const request = pendingFixture(f, 'userInput');
+  assert.equal(f.deckState().activity, 'requires-input');
+  request.panel.memoizedProps.pendingRequest.type = 'unsupported';
+  assert.equal(f.deckState().activity, 'requires-input');
+  request.controls.child.stateNode = triggerElement(false);
+  assert.equal(f.deckState().activity, 'thinking');
+});
+
+test('active composer can report thinking when its sidebar status is not mounted', () => {
+  const f = fixture();
+  f.owner.memoizedProps.isResponseInProgress = true;
+  assert.equal(f.deckState().activity, 'thinking');
+  f.owner.memoizedProps.isResponseInProgress = false;
+  assert.equal(f.deckState().activity, 'unknown');
 });

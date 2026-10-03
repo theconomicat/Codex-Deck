@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { DeckController, consumePairingToken, isPresetSelected, usagePercent, POLL_INTERVAL } = require('../../Sources/CodexUsageWeb/Resources/deck.js');
+const { deckActivity, DeckController, consumePairingToken, isPresetSelected, usagePercent, POLL_INTERVAL } = require('../../Sources/CodexUsageWeb/Resources/deck.js');
 
 const preset = { slot: 1, model: 'gpt-6-astra', effort: 'ultra', title: 'GPT-6 Astra · Ultra' };
 function snapshot(overrides = {}) {
@@ -432,4 +432,27 @@ test('short sound tails use bounded separate voices instead of cutting off every
   assert.equal(voices.length, 3);
   assert.deepEqual(voices.map(voice => voice.plays), [2, 2, 1]);
   assert.ok(voices.every(voice => voice.volume <= 0.65));
+});
+
+
+test('frame follows all five chat states and never model-action busy/success', () => {
+  for (const activity of ['idle', 'complete', 'thinking', 'requires-input', 'error']) {
+    assert.equal(deckActivity({ phase: 'ready', snapshot: snapshot({ activity }), busy: true,
+      feedback: { tone: 'success', message: 'Model changed' } }), activity);
+  }
+  assert.equal(deckActivity({ phase: 'ready', snapshot: snapshot() }), 'unknown');
+  assert.equal(deckActivity({ phase: 'ready', snapshot: snapshot({ activity: 'future-status' }) }), 'unknown');
+});
+test('frame drops stale colors when offline, unpaired or targetless', () => {
+  for (const phase of ['offline', 'pairing', 'loading', 'unavailable']) {
+    assert.equal(deckActivity({ phase, snapshot: snapshot({ activity: 'complete' }) }), 'off');
+  }
+  for (const overrides of [{ connected: false }, { target: null }]) {
+    assert.equal(deckActivity({ phase: 'ready', snapshot: snapshot({ activity: 'error', ...overrides }) }), 'off');
+  }
+});
+test('pending questions and Mac-only approvals keep the frame amber', () => {
+  for (const overrides of [{ pending: [{ kind: 'question' }] }, { pendingUnavailable: 'Answer in Codex' }]) {
+    assert.equal(deckActivity({ phase: 'ready', snapshot: snapshot({ activity: 'thinking', ...overrides }) }), 'requires-input');
+  }
 });

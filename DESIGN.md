@@ -5,6 +5,12 @@ colors:
   page: "#e3e7e8"
   board-light: "#e0e5e6"
   board-shade: "#cbd2d4"
+  frame-idle: "#f7f9f9"
+  frame-complete: "#9bf095"
+  frame-thinking: "#9bd2f8"
+  frame-input: "#ffd1b8"
+  frame-error: "#ff7075"
+  frame-unavailable: "#bac3c6"
   key-light: "#f9fbfb"
   key-shade: "#e8edef"
   dialog: "#edf1f2"
@@ -53,11 +59,11 @@ rounded:
   dock: "14px"
   dialog: "24px"
   key: "clamp(16px, 3.5vmin, 30px)"
-  board: "clamp(26px, 5vmin, 44px)"
+  board: "clamp(36px, 6vmin, 56px)"
 spacing:
   field-padding: "12px"
   dialog-padding: "24px"
-  board-padding: "clamp(14px, 2.8vmin, 28px)"
+  board-padding: "calc(var(--frame-width) + var(--inner-pad))"
   key-gap: "clamp(12px, 2.2vmin, 22px)"
   dock-gap: "clamp(20px, 3vmin, 28px)"
 components:
@@ -94,7 +100,7 @@ components:
 
 The user's white Codex Micro photo sets the material direction: pale square keycaps, shallow dished faces, softly beveled edges, and visible key thickness on a cool gray board. Charcoal labels and icons stay clear against the light surfaces. Depth communicates pressable controls without adding branding or a persistent header.
 
-Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.9.0 web surface; its stylesheet remains the implementation source.
+Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.9.2 web surface; its stylesheet remains the implementation source.
 
 **Key Characteristics:**
 - Square white keys with recessed circular faces.
@@ -114,7 +120,7 @@ Use the native system UI stack, with rem sizes for dialogs, forms, and dock cont
 
 Center the board within the viewport's safe-area padding. Six keys form a 3 × 2 grid in landscape and a 2 × 3 grid in portrait. The board calculation reserves its padding, gaps, effort slider and controls before choosing the largest square key size that fits. In landscape the controls sit in a column to the right of the keys and the slider spans both columns below. Portrait places the slider and then the dock below the keys.
 
-The portrait dock is 52px high (44px below 650px viewport height). The effort row reserves 84px. Landscape at 440px height or less uses 12px board padding, 10px key gaps, a 14px row gap, a 96px control column and a 66px effort row with endpoint labels hidden. The toggle reads Models or Presets at every width; below a 350px board container hide its icon, and below 290px hide the Requests and microphone icons. Keep accessible names intact. Dialogs may scroll internally on short screens. Active-deck notices sit at the top so the Mac mic control stays available.
+The portrait dock is 52px high (44px below 650px viewport height). The effort row reserves 84px. Landscape at 440px height or less uses an 18px outer frame plus 10px inner padding, 10px key gaps, a 14px row gap, a 96px control column and a 66px effort row with endpoint labels hidden. The toggle reads Models or Presets at every width; below a 350px board container hide its icon, and below 290px hide the Requests and microphone icons. Keep accessible names intact. Dialogs may scroll internally on short screens. Active-deck notices sit at the top so the Mac mic control stays available.
 
 ## Elevation & Depth
 
@@ -144,3 +150,5 @@ In 0.9.1, pending selection uses the requested key face immediately with an ambe
 - **Don't** treat a lost connection as confirmation that the Mac microphone stopped.
 
 The model catalog occupies the preset grid’s existing footprint with two columns in portrait and four in landscape. Its white keys contain only model names, with confirmed selection indicated by a sage face and aria-pressed. Larger catalogs scroll within the grid. The original grid is inert while hidden. Models / Presets changes the view instantly without animation or a model write; Escape returns to Presets.
+
+In 0.9.2 the outer frame is `clamp(22px, 4vmin, 38px)` wide, with a separate `clamp(12px, 2vmin, 20px)` inner pad. Short landscape uses 18px + 10px. The frame carries the native chat status: white idle, pale green unread completion, pale blue thinking, peach input required, and red chat error. Unknown/offline is gray. The inset panel and white keys retain their materials. Change color without animation or extra polling, and expose the same status in Usage and a screen-reader live region.

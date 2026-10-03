@@ -15,7 +15,7 @@
 </head>
 <body>
   <main class="remote" aria-label="Codex model deck">
-    <div class="deck-surface">
+    <div class="deck-surface" data-activity="off" aria-describedby="activity-announcement">
     <div id="key-surface" class="key-surface" data-view="presets">
     <div id="presets" class="deck-grid" aria-label="Model presets and usage" aria-busy="true">
       <button id="usage-key" type="button" class="deck-key usage-key" aria-label="Usage unavailable. Open deck controls" aria-haspopup="dialog">
@@ -55,6 +55,7 @@
     </section>
     <div id="notice" class="notice" hidden><p id="notice-text"></p><button id="dismiss-notice" type="button" aria-label="Dismiss notification">×</button></div>
     <p id="feedback" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+    <p id="activity-announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true">No connected chat</p>
     <noscript><p class="notice">Enable JavaScript to use the deck.</p></noscript>
   </main>
   <dialog id="requests" aria-labelledby="requests-title">
@@ -67,6 +68,7 @@
     <div class="dialog-heading"><h2 id="controls-title">Deck controls</h2><button id="close-controls" type="button" aria-label="Close controls">×</button></div>
     <p id="connection-label" class="secondary">Connecting</p>
     <p class="field-label">Active chat</p><p id="target-title">Waiting for Codex…</p>
+    <p id="chat-activity" class="secondary">No connected chat</p>
     <p id="usage-details" class="secondary"></p>
     <p id="pending-unavailable" class="secondary" hidden></p>
     <div class="control-grid">

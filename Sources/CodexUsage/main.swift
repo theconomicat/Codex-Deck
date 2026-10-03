@@ -343,7 +343,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             payload["target"] = ["id": state.targetID, "title": state.title]
             payload["selection"] = ["model": state.model, "effort": state.effort]
             let extended = try JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any]
-            for key in ["models", "dictation", "pending", "pendingUnavailable"] {
+            for key in ["models", "activity", "dictation", "pending", "pendingUnavailable"] {
                 payload[key] = extended?[key]
             }
         } catch { payload["message"] = error.localizedDescription }

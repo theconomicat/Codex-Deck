@@ -112,3 +112,15 @@ func directWebSocketRejectsFailureInsteadOfReportingApplied(_ mode: String) asyn
         await #expect(throws: DirectSwitchError.self) { try await DirectModelSwitcher(port: port).control(input) }
     }
 }
+
+@Test func deckActivitySurvivesTypedBridgeEncodingAndOlderPayloads() throws {
+    let base: [String: Any] = ["targetID": "chat-1", "title": "Fixture chat", "model": "gpt-6-astra", "effort": "high"]
+    #expect(try JSONDecoder().decode(DeckState.self, from: JSONSerialization.data(withJSONObject: base)).activity == nil)
+    for activity in ["idle", "thinking", "complete", "requires-input", "error", "unknown"] {
+        var payload = base
+        payload["activity"] = activity
+        let state = try JSONDecoder().decode(DeckState.self, from: JSONSerialization.data(withJSONObject: payload))
+        let encoded = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+        #expect(encoded["activity"] as? String == activity)
+    }
+}

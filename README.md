@@ -33,7 +33,7 @@ User-provided screenshot of a weekly-only account: the green ring shows 94% rema
 
 <img src="docs/web-deck-questions.png" alt="A pending question with selectable answers and a request-specific text field" width="500" />
 
-Version 0.9.0, rendered with synthetic offline fixture data. These landscape, portrait, model catalog, slider, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
+Version 0.9.2, rendered with synthetic offline fixture data. These landscape, portrait, model catalog, slider, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
 
 ---
 
@@ -131,6 +131,18 @@ The 0.9.1 tone has a soft attack and a rounded 180 ms tail. Rapid button presses
 The sixth tile shows **remaining quota as a percentage only** inside its ring, with no “remaining” label underneath. It prioritizes the weekly window (otherwise the first available window). Tap **Usage** for full usage details and reset information. Missing or expired quota, or a lost connection, displays **—**. Connection and error notices appear only when needed.
 
 A pairing link expires after **5 minutes** and can be used **once**. Choose **New Pairing Link** for another device or an expired link; existing paired devices stay connected. Each paired browser session lasts up to **8 hours**. Keep pairing links private.
+
+The wider outer frame follows the current chat’s status, using the [official Micro color meanings](https://learn.chatgpt.com/docs/features/codex-micro):
+
+| Frame | Chat state |
+| --- | --- |
+| White | Idle |
+| Light green | Complete with an unread update |
+| Light blue | Thinking / working |
+| Peach / amber | Requires input or approval |
+| Red | Chat error |
+
+Only the frame changes color; the white keys and gray inner board stay legible. **Usage** also names the state. Disconnected or unrecognized status is gray. Colors update with the existing five-second poll while the page is visible; a preset change does not trigger the completion color. Green clears when Codex marks the update read. See [frame previews and limits](docs/codex-micro.md#status-frame).
 
 **Disconnect All Devices** revokes every session and creates a fresh link. **Stop Web Deck** closes the server and revokes all sessions. Closing only its settings window keeps it running. After a companion restart, start Web Deck and pair again; neither the server state nor sessions are saved. A phone can also use **Usage → Disconnect** to end its own session.
 
@@ -316,6 +328,8 @@ Version 0.7.0 added six tactile keys and landscape/fullscreen support. Version *
 Version **0.8.2** replaces the rotary dial with a horizontal volume-style effort slider. Drag/release, touch, keyboard input, and five viewport sizes were checked in an offline browser.
 Version **0.9.0** renames the app to Codex Deck and adds an inline **Models / Presets** view switch. The model keys show names only; selecting one keeps a supported effort. Browser fixtures verify view switching, model selection, slider behavior, and disconnected states.
 Version **0.9.1** adds a softer original key tone, immediate pending selection, continuous slider movement, and a single latest-value effort queue. Successful model writes use the host-verified acknowledgement immediately and resume normal polling, eliminating the extra old-state repaint and read. Slow-response, failure, target-change, and keyboard cases were checked with isolated fixtures.
+
+Version **0.9.2** widens the frame and maps its five colors to identity-scoped native chat status, with a neutral fallback when status is unavailable. The bridge, typed payload, and responsive browser states were checked with isolated fixtures; live Codex status and physical-phone behavior were not agent-verified.
 Version **0.8.3** puts the effort slider directly on the deck. Selecting a preset synchronizes the bar; moving it preserves the active model and changes only its effort. The Astra Ultra → High and Sol Extra High → High flows were verified with offline fixtures.
 The 0.8.0 interface was checked in a real browser with isolated fixture data, and the integration was reviewed against static Codex source. Live Codex actions, native microphone capture, and physical-phone sound/vibration were not validated for this release. Fixture checks establish UI and contract behavior, not guaranteed compatibility with a running Codex build.
 This does not establish Ultra availability for every account or coverage of every window/composer state.

@@ -41,6 +41,7 @@ struct WebDeckFixture {
                 "models": models,
                 "dictation": ["available": true, "recording": recording, "owned": recording],
                 "pending": pending,
+                "activity": pending.isEmpty ? "idle" : "requires-input",
                 "presets": presets.map {
                     ["slot": $0.slot, "model": $0.model, "effort": $0.effort.rawValue, "title": $0.title] as [String: Any]
                 },

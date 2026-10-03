@@ -29,6 +29,24 @@ These controls change subsequent turns of the current chat. They do not restart 
 
 The bridge requires one unambiguous saved chat with its composer visible. If the target or catalog changes while a control is being used, refresh and check the target in **Usage** before retrying.
 
+## Status frame
+
+Version 0.9.2 adds a broad, beveled outer frame around the gray inner board. It follows the [official Micro status colors](https://learn.chatgpt.com/docs/features/codex-micro), independent of model choice and reasoning effort.
+
+| Color | Meaning | Offline fixture preview |
+| --- | --- | --- |
+| White | Idle | <img src="web-deck-idle.png" alt="Idle white frame" width="260" /> |
+| Light green | Complete, with an unread update | <img src="web-deck-complete.png" alt="Unread completion green frame" width="260" /> |
+| Light blue | Thinking / working | <img src="web-deck-thinking.png" alt="Working blue frame" width="260" /> |
+| Peach / amber | Requires an answer or approval | <img src="web-deck-requires-input.png" alt="Input required amber frame" width="260" /> |
+| Red | Chat error | <img src="web-deck-error.png" alt="Chat error red frame" width="260" /> |
+
+The bridge reads the current saved chat’s committed `statusState.type` and `statusState.unread` props, scoped by its conversation ID. Mounted pending requests take precedence, including requests that must be answered on the Mac. A native composer response-in-progress flag can supply Thinking if the task-row status is absent. No transcript, arbitrary hook state, or another chat’s status is used. Missing, changed, or conflicting status shapes produce a neutral gray frame, rather than guessing Idle. Because this relies on internal Codex props, future versions or layouts that omit status can show gray while model controls still work.
+
+The existing five-second visible-page poll updates the frame; no extra timer, status query, perpetual pulse, or continuous animation is added. Reading a completion in Codex clears its unread green state. Connection loss, pairing expiry, and unavailable chats clear stale colors. Model-change acknowledgement and recording state do not impersonate chat completion. **Usage** shows the state in text, and a screen-reader live region announces changes without adding a main-deck header.
+
+These five previews and automated checks use synthetic offline state. They verify the renderer and adapter contracts, not live desktop status or physical-phone integration.
+
 ## Dictation and native permissions
 
 **Mac mic** controls Codex’s existing dictation, not the phone microphone and not a realtime voice call. Codex must expose enabled dictation controls, and macOS must allow Codex microphone access. Complete any system prompt on the Mac. The browser cannot grant macOS permissions; it does not call a phone recording API or relay audio to the companion.

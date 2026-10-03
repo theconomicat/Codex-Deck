@@ -3,6 +3,14 @@
 
   const POLL_INTERVAL = 5000;
   const effortLabels = { none: "None", minimal: "Minimal", low: "Low", medium: "Medium", high: "High", xhigh: "Extra High", max: "Max", ultra: "Ultra" };
+  const activityLabels = { idle: "Idle", thinking: "Thinking", complete: "Complete — unread update", "requires-input": "Requires input", error: "Chat error", unknown: "Chat status unavailable", off: "No connected chat" };
+
+  function deckActivity(state) {
+    const snapshot = state.snapshot;
+    if (state.phase !== "ready" || !snapshot?.connected || !snapshot.target?.id) return "off";
+    if (snapshot.pending?.length || snapshot.pendingUnavailable) return "requires-input";
+    return ["idle", "thinking", "complete", "requires-input", "error"].includes(snapshot.activity) ? snapshot.activity : "unknown";
+  }
 
   function modelLabel(model) {
     return String(model || "Model").replace(/^gpt-/i, "GPT-").replace(/-(astra|sol|luna|terra)$/i, (_, name) => " " + name[0].toUpperCase() + name.slice(1));
@@ -521,6 +529,10 @@
       const selection = controller.displaySelection();
       const pending = !!state.pendingSelection;
       document.querySelector(".deck-surface").dataset.applying = String(busy);
+      const activity = deckActivity(state), activityLabel = activityLabels[activity];
+      document.querySelector(".deck-surface").dataset.activity = activity;
+      if (byID("activity-announcement").textContent !== activityLabel) byID("activity-announcement").textContent = activityLabel;
+      byID("chat-activity").textContent = activityLabel;
       const pairing = phase === "pairing";
       byID("pairing").hidden = !pairing;
       document.querySelector(".remote").dataset.pairing = String(pairing);
@@ -717,7 +729,7 @@
   }
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { modelEffort, validControl, pressFeedback, DeckController, consumePairingToken, modelLabel, isPresetSelected, usagePercent, POLL_INTERVAL };
+    module.exports = { deckActivity, modelEffort, validControl, pressFeedback, DeckController, consumePairingToken, modelLabel, isPresetSelected, usagePercent, POLL_INTERVAL };
   } else {
     const token = consumePairingToken(window.location, window.history);
     let render = () => {};

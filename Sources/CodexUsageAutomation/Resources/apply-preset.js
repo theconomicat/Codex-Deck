@@ -156,16 +156,18 @@ function codexDeckRuntime() {
     return active;
   };
   const walk = (start, visit) => {
-    const stack = [start], seen = new Set();
+    const stack = [{ node: start, conversationID: null }], seen = new Set();
     while (stack.length) {
-      const node = stack.pop();
+      const entry = stack.pop(), node = entry.node;
       if (!node || seen.has(node)) continue;
       if (seen.size >= 100000) throw new Error('The Codex control search reached its limit.');
       seen.add(node);
-      visit(node);
+      const conversationID = Object.hasOwn(node.memoizedProps ?? {}, 'conversationId')
+        ? node.memoizedProps.conversationId : entry.conversationID;
+      visit(node, conversationID);
       // A subtree walk must not visit its root's siblings.
       for (let child = node.child; child; child = child.sibling) {
-        stack.push(child);
+        stack.push({ node: child, conversationID });
         if (stack.length > 100000) throw new Error('The Codex control search reached its limit.');
       }
     }
@@ -211,9 +213,17 @@ function codexDeckRuntime() {
     return { state: { available, recording, owned }, voice, nativeControl };
   };
   const pending = () => {
-    const owners = [];
-    walk(runtime.currentRoot(), node => {
+    const owners = [], statuses = new Set();
+    walk(runtime.currentRoot(), (node, conversationID) => {
       const props = node.memoizedProps;
+      // Codex's task row passes statusState to its indicator. Read only the
+      // committed, identity-scoped status props, never messages or hook state.
+      const status = props?.statusState;
+      if (conversationID === targetID && typeof status?.unread === 'boolean') {
+        if (status.type === 'error') statuses.add('error');
+        else if (status.type === 'loading') statuses.add('thinking');
+        else if (status.type === 'idle') statuses.add(status.unread ? 'complete' : 'idle');
+      }
       if (props?.conversationId !== targetID || !props.pendingRequest?.type) return;
       let mounted = false;
       walk(node, child => { if (visible(child)) mounted = true; });
@@ -323,7 +333,12 @@ function codexDeckRuntime() {
       }
       entries.set(id, entry);
     }
-    return { entries, ids, unavailable };
+    // A mounted question/approval takes precedence over the underlying turn
+    // still running. Unsupported requests also require attention on the Mac.
+    const responding = composer.owners.some(owner => owner.memoizedProps?.isResponseInProgress === true);
+    const activity = owners.length ? 'requires-input' : statuses.size === 1 ? [...statuses][0]
+      : statuses.size === 0 && responding ? 'thinking' : 'unknown';
+    return { entries, ids, unavailable, activity };
   };
   return { composer, targetID, ensureActive, dictation, pending };
 }
@@ -345,7 +360,7 @@ function readCodexDeck() {
       efforts: option.model.supportedReasoningEfforts.map(level => level.reasoningEffort).filter(level => typeof level === 'string')
     }));
   const requests = pending();
-  return { targetID, title: title ?? 'Current Codex chat', model, effort, models,
+  return { targetID, title: title ?? 'Current Codex chat', model, effort, models, activity: requests.activity,
     dictation: dictation(composer).state, pending: [...requests.entries.values()].map(entry => entry.data),
     ...(requests.unavailable ? { pendingUnavailable: requests.unavailable } : {}) };
 }

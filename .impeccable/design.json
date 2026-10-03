@@ -260,8 +260,8 @@
     "shadows": [
       {
         "name": "board",
-        "value": "inset 0 0 0 2px #f7f9f9, inset 0 0 0 7px #e9edee, inset 0 0 0 9px #bac3c6, 0 8px 2px #bcc4c7, 0 18px 30px #49575e25",
-        "purpose": "Inset frame and thickness below the keypad board."
+        "value": "inset 0 2px 2px #ffffffd9, inset 0 -3px 3px #52636b25, 0 6px 2px #aab5ba, 0 18px 30px #49575e25",
+        "purpose": "Broad colored status frame around a recessed gray inner board."
       },
       {
         "name": "raised-key",
@@ -307,7 +307,21 @@
         "name": "hide-requests-icon",
         "value": "container max-width: 290px"
       }
-    ]
+    ],
+    "statusFrame": {
+      "width": "clamp(22px, 4vmin, 38px)",
+      "shortLandscapeWidth": "18px",
+      "innerPad": "clamp(12px, 2vmin, 20px)",
+      "colors": {
+        "idle": "#f7f9f9",
+        "complete": "#9bf095",
+        "thinking": "#9bd2f8",
+        "requires-input": "#ffd1b8",
+        "error": "#ff7075",
+        "unavailable": "#bac3c6"
+      },
+      "behavior": "Native current-chat status, no color animation or extra polling; neutral when unavailable."
+    }
   },
   "components": [
     {

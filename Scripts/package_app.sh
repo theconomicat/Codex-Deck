@@ -36,9 +36,9 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
   <key>CFBundleIconFile</key>
   <string>AppIcon</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.9.1</string>
+  <string>0.9.2</string>
   <key>CFBundleVersion</key>
-  <string>23</string>
+  <string>24</string>
   <key>LSMinimumSystemVersion</key>
   <string>13.0</string>
   <key>NSLocalNetworkUsageDescription</key>
