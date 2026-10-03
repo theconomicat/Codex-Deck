@@ -478,3 +478,12 @@ test('catalog aliases resolve to full display names while custom models keep the
     [{ id: 'provider:astra', name: 'GPT-6 Astra' }]);
   assert.deepEqual(labels, [{ full: 'GPT-6 Astra', short: 'Astra' }, { full: 'My Custom Model', short: 'My Custom Model' }, { full: 'GPT-5.5', short: 'GPT-5.5' }]);
 });
+
+
+test('optional button labels change display only, retaining exact model identity', () => {
+  const custom = { ...preset, label: 'Focus' };
+  const before = JSON.stringify(custom);
+  assert.deepEqual(presetModelLabels([custom]), [{ short: 'Focus', full: 'GPT-6 Astra' }]);
+  assert.equal(isPresetSelected({ model: 'gpt-6-astra', effort: 'ultra' }, custom), true);
+  assert.equal(JSON.stringify(custom), before);
+});

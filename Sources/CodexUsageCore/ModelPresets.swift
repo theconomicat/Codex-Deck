@@ -4,6 +4,14 @@ public struct ModelPreset: Codable, Equatable, Sendable {
     public let slot: Int
     public let model: String
     public let effort: ReasoningEffort
+    public let label: String?
+
+    public init(slot: Int, model: String, effort: ReasoningEffort, label: String? = nil) {
+        self.slot = slot
+        self.model = model
+        self.effort = effort
+        self.label = label
+    }
 
     public var title: String { "\(model) · \(effort.title)" }
 }
@@ -46,6 +54,13 @@ public struct PresetConfiguration: Codable, Equatable, Sendable {
             throw PresetError.invalid("Provide slots 1 through 5 exactly once. Legacy files with slots 1, 2, and 3 are upgraded automatically.")
         }
         for preset in config.presets {
+            if let label = preset.label {
+                guard !label.isEmpty, label.count <= 32,
+                      label == label.trimmingCharacters(in: .whitespacesAndNewlines),
+                      !label.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else {
+                    throw PresetError.invalid("Slot \(preset.slot): label must be 1–32 characters, without surrounding spaces or control characters. Omit label to use the model name.")
+                }
+            }
             guard !preset.model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   preset.model.count <= 120, !PickerLabels.normalized(preset.model).isEmpty,
                   !preset.model.contains(where: { $0.isNewline }),

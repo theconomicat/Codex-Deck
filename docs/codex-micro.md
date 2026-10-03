@@ -9,7 +9,7 @@ For installation, pairing, and JSON preset editing, use the [English README](../
 | Control | How to use it | Scope |
 | --- | --- | --- |
 | Five model keys | Read the model family above its reasoning level. Tap a key; wait for the confirmed selection. | Applies the corresponding `presets.json` model and effort to the active saved chat. |
-| Usage | Read the percentage in the ring; tap for details, refresh, fullscreen, or disconnect. | Remaining quota, preferring the weekly window. Missing/expired/offline data is `—`. |
+| Usage | Read the centered percentage ring, without a caption or ellipsis; tap for details, refresh, fullscreen, or disconnect. | Remaining quota, preferring the weekly window. Missing/expired/offline data is `—`. |
 | Effort slider | Drag the bar directly on the deck, then release. | Keeps the current model, changing only its effort. For example: preset 1 Astra Ultra → slider High = Astra High. Saved presets stay unchanged. |
 | Models / Presets | Toggle between model-name keys and the five saved presets. Tap a model to apply it. | Keeps a supported current effort, falling back to High or the first supported level. Returning to Presets changes only the view. |
 | Mac mic / Stop mic | Start dictation; stop when finished. | Uses the Mac microphone and inserts the transcript into the Mac composer without sending. |
@@ -25,7 +25,7 @@ The deck reads the visible composer’s model options instead of assuming that e
 
 The requested selection stays visible as pending while the Mac responds. Its acknowledgement confirms that same position without reverting to the previous state. While a model write is pending, further slider releases replace a single trailing value; they never start parallel writes. Failure or a changed chat cancels the queue. A soft original tone plays on a button press or slider release, with no per-step tick during dragging.
 
-These controls change subsequent turns of the current chat. They do not restart a running response, send a prompt, or rewrite the five configured presets. Use **Model Presets → Edit Presets…** on the Mac to save a recurring combination.
+These controls change subsequent turns of the current chat. They do not restart a running response, send a prompt, or rewrite the five configured presets. Use **Edit Button Settings…** on the Mac to save a recurring combination. Each `slot` maps a deck position and Command–Control number; optional `label` names the web key without changing its model or effort.
 
 The bridge requires one unambiguous saved chat with its composer visible. If the target or catalog changes while a control is being used, refresh and check the target in **Usage** before retrying.
 

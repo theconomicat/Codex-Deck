@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Codex-Usage model presets",
+  "title": "Codex Deck button settings",
   "description": "Include slots 1 through 5 exactly once. Legacy 1–3 files are accepted for automatic migration; the app checks slot uniqueness.",
   "type": "object",
   "required": [
@@ -24,7 +24,8 @@
           "slot": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 5
+            "maximum": 5,
+            "description": "Maps the button position and Command-Control-number shortcut. Include 1 through 5 exactly once; array order does not matter."
           },
           "model": {
             "type": "string",
@@ -43,6 +44,13 @@
               "max",
               "ultra"
             ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[^\\s\\u0000-\\u001F\\u007F-\\u009F](?:[^\\u0000-\\u001F\\u007F-\\u009F]*[^\\s\\u0000-\\u001F\\u007F-\\u009F])?$",
+            "description": "Optional name on the Web Deck button, such as Focus or Fast. Model and effort still control the actual selection. Omit for an automatic model-family name."
           }
         }
       },

@@ -18,8 +18,7 @@
     <div class="deck-surface" data-activity="off" aria-describedby="activity-announcement">
     <div id="key-surface" class="key-surface" data-view="presets">
     <div id="presets" class="deck-grid" aria-label="Model presets and usage" aria-busy="true">
-      <button id="usage-key" type="button" class="deck-key usage-key" aria-label="Usage unavailable. Open deck controls" aria-haspopup="dialog">
-        <span class="key-top"><span>Usage</span><span class="settings-icon" aria-hidden="true">···</span></span>
+      <button id="usage-key" type="button" class="deck-key usage-key" aria-label="Usage unavailable. Open usage details" aria-haspopup="dialog">
         <span class="usage-dial">
           <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-track" cx="60" cy="60" r="52"/><circle id="usage-ring" class="ring-value" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="0 100"/></svg>
           <span class="usage-reading"><span id="usage-value">—</span></span>
@@ -65,7 +64,7 @@
     <p id="requests-status" class="secondary" role="status"></p>
   </dialog>
   <dialog id="controls" aria-labelledby="controls-title">
-    <div class="dialog-heading"><h2 id="controls-title">Deck controls</h2><button id="close-controls" type="button" aria-label="Close controls">×</button></div>
+    <div class="dialog-heading"><h2 id="controls-title">Usage</h2><button id="close-controls" type="button" aria-label="Close usage details">×</button></div>
     <p id="connection-label" class="secondary">Connecting</p>
     <p class="field-label">Active chat</p><p id="target-title">Waiting for Codex…</p>
     <p id="chat-activity" class="secondary">No connected chat</p>

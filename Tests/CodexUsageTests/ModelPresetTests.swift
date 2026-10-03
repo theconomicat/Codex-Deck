@@ -92,3 +92,28 @@ func powerAnnouncementConfirmsTheExactModelAndEffort() {
     #expect(PickerLabels.selection(in: ["6.1 Sol High", "6.1 Sol Extra High"], model: "GPT-6.1 Sol") == nil)
     #expect(PickerLabels.selection(in: ["GPT-6.1 Sol preview High"], model: "GPT-6.1 Sol") == nil)
 }
+
+@Test func customButtonLabelsRoundTripWithoutChangingModelOrShortcut() throws {
+    let data = try PresetConfiguration.defaults.encoded()
+    var object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    var rows = try #require(object["presets"] as? [[String: Any]])
+    rows[0]["label"] = "Focus"
+    object["presets"] = rows
+    let configuration = try PresetConfiguration.decode(JSONSerialization.data(withJSONObject: object))
+    #expect(configuration.presets[0].label == "Focus")
+    #expect(configuration.presets[0].model == "GPT-6 Astra")
+    #expect(configuration.presets[0].effort == .ultra)
+    #expect(configuration.presets[0].slot == 1)
+    #expect(configuration.presets[1].label == nil)
+    #expect(try PresetConfiguration.decode(configuration.encoded()) == configuration)
+}
+
+@Test(arguments: ["", " Focus", "Focus ", "Focus\nNow", "Focus\tNow", String(repeating: "x", count: 33)])
+func malformedButtonLabelsKeepTheConfigurationInvalid(_ label: String) throws {
+    var object = try #require(JSONSerialization.jsonObject(with: PresetConfiguration.defaults.encoded()) as? [String: Any])
+    var rows = try #require(object["presets"] as? [[String: Any]])
+    rows[0]["label"] = label
+    object["presets"] = rows
+    let data = try JSONSerialization.data(withJSONObject: object)
+    #expect(throws: PresetError.self) { try PresetConfiguration.decode(data) }
+}

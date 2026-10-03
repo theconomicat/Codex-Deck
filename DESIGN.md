@@ -101,7 +101,7 @@ components:
 
 The user's white Codex Micro photo sets the material direction: pale square keycaps, shallow dished faces, softly beveled edges, and visible key thickness on a cool gray board. Charcoal labels and icons stay clear against the light surfaces. Depth communicates pressable controls without adding branding or a persistent header.
 
-Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.9.4 web surface; its stylesheet remains the implementation source.
+Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.9.5 web surface; its stylesheet remains the implementation source.
 
 **Key Characteristics:**
 - Square white keys with recessed circular faces.
@@ -134,7 +134,7 @@ Keys retain a square silhouette with softly rounded corners. Each dished face is
 ## Components
 
 - **Preset keys:** prominent model family above smaller effort, with a small indicator only for the selected key. No printed slot number. Confirmed selection changes the recess, label, border, and LED; pending uses amber. Preserve selected, busy, disabled, and focus states. Never show success before host confirmation.
-- **Usage key:** a circular track with the percentage only; no “remaining” caption. Unknown, expired, or offline data uses an em dash. Opens the native dialog for the active chat, usage details, fullscreen, refresh, and disconnect.
+- **Usage key:** a larger centered circular track with the percentage only; no Usage caption, ellipsis, “remaining” text, or second recessed circle. Keep the physical square keycap. Unknown, expired, or offline data uses an em dash. Opens the native dialog for the active chat, usage details, fullscreen, refresh, and disconnect.
 - **Model controls:** an inline catalog of model-name keys toggled by Models / Presets and an always-visible horizontal range input directly on the deck, labeled with the active model and effort. Keep native touch and keyboard semantics. Preset confirmation synchronizes the slider. Pointer movement previews and release changes only the active model’s effort; saved presets remain unchanged. Choosing a different model applies a supported effort.
 - **Dock and requests:** Model, Mac mic, and a Requests control only when supported requests are waiting. Recording has an explicit red state. Request dialogs show relevant options and text fields with clear Allow once/Deny treatments.
 - **Feedback:** visible focus outline, dismissible screen-reader-announced notices, short bundled click audio and supported-device vibration after gestures. Sound has no page toggle; hardware/browser mute remains authoritative. No idle animation or continuous audio.
@@ -157,3 +157,5 @@ In 0.9.2 the outer frame is `clamp(22px, 4vmin, 38px)` wide, with a separate `cl
 The effort range has no enclosing border, focus outline, or tap highlight during pointer/touch use, including after release. Only keyboard focus receives the existing focus outline. Preserve the thumb's physical edge and the track's recessed material.
 
 In 0.9.4, the five preset labels use Astra / Ultra, Astra / Extra High, Astra / High, Sol / Extra High, and Sol / High. Keep full display names in the catalog, slider, title and accessible name. For same-family version collisions use labels such as Sol 6 and Sol 6.1; do not abbreviate custom model names. Long custom names clamp visually to two lines while the full identity remains accessible. The primary model label uses ink / selected-ink, and the smaller effort uses secondary / selected-secondary.
+
+In 0.9.5, an optional JSON `label` overrides the web preset name; the effort remains below it and the actual model remains in its tooltip and accessible name. The native menu opens JSON directly through Edit Button Settings… and keeps full model names in its preset entries.

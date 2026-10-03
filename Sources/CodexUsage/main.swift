@@ -211,19 +211,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(item)
         }
         add(menu, "Enable Direct Switching…", #selector(openDirectSwitching))
-        let presetMenu = NSMenu(title: "Model Presets")
-        presetMenu.autoenablesItems = false
-        add(presetMenu, "Edit Presets…", #selector(editPresets))
-        add(presetMenu, "Reload Presets", #selector(reloadPresets))
+        let editSettings = add(menu, "Edit Button Settings…", #selector(editPresets))
+        editSettings.toolTip = "Open presets.json to edit button names, models, reasoning levels and numbered shortcut mappings."
+        add(menu, "Reload Button Settings", #selector(reloadPresets))
         if let error = presets.error {
             let item = NSMenuItem(title: "Presets error — previous settings kept", action: #selector(showPresetError), keyEquivalent: "")
             item.target = self
             item.toolTip = error
-            presetMenu.addItem(item)
+            menu.addItem(item)
         }
-        let presetSettings = NSMenuItem(title: "Model Presets", action: nil, keyEquivalent: "")
-        presetSettings.submenu = presetMenu
-        menu.addItem(presetSettings)
         add(menu, webDeck.server.isRunning ? "Web Deck · Running…" : "Web Deck…", #selector(openWebDeck))
         menu.addItem(.separator())
         let launch = add(menu, "Launch at Login", #selector(toggleLaunchAtLogin))
@@ -289,7 +285,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func editPresets() {
         presets.reload()
         if FileManager.default.fileExists(atPath: presets.url.path) {
-            NSWorkspace.shared.open(presets.url)
+            if !NSWorkspace.shared.open(presets.url) {
+                showAlert("Open button settings", "Open this file in a text editor: \(presets.url.path)")
+            }
         } else { showPresetError() }
         render()
     }
@@ -323,7 +321,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         var payload: [String: Any] = [
             "connected": false, "busy": switching,
             "presets": presets.configuration.presets.sorted(by: { $0.slot < $1.slot }).map {
-                ["slot": $0.slot, "model": $0.model, "effort": $0.effort.rawValue, "title": $0.title] as [String: Any]
+                var preset: [String: Any] = ["slot": $0.slot, "model": $0.model, "effort": $0.effort.rawValue, "title": $0.title]
+                if let label = $0.label { preset["label"] = label }
+                return preset
             }
         ]
         if let snapshot = latestSnapshot {

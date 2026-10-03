@@ -23,9 +23,10 @@
       const match = /^GPT[- ](\d+(?:\.\d+)?) (Astra|Sol|Luna|Terra)$/i.exec(full);
       return { full, version: match?.[1], family: match?.[2] };
     });
-    return names.map(name => {
+    return names.map((name, index) => {
       const ambiguous = name.family && names.some(other => other.family?.toLowerCase() === name.family.toLowerCase() && other.version !== name.version);
-      return { full: name.full, short: name.family ? name.family + (ambiguous ? ` ${name.version}` : "") : name.full };
+      const label = typeof presets[index].label === "string" ? presets[index].label.trim() : "";
+      return { full: name.full, short: label || (name.family ? name.family + (ambiguous ? ` ${name.version}` : "") : name.full) };
     });
   }
 
@@ -619,7 +620,8 @@
       byID("usage-value").textContent = value;
       byID("usage-ring").setAttribute("stroke-dasharray", `${percent ?? 0} 100`);
       usageKey.dataset.level = percent === null ? "unknown" : percent < 10 ? "low" : percent < 25 ? "medium" : "normal";
-      usageKey.setAttribute("aria-label", `${percent === null ? "Usage unavailable" : `${value} remaining`}. Open deck controls`);
+      usageKey.setAttribute("aria-label", `${percent === null ? "Usage unavailable" : `Usage: ${value} remaining`}. Open usage details`);
+      usageKey.title = percent === null ? "Usage unavailable" : `${value} Codex usage remaining`;
       let message = feedback?.tone !== "success" ? feedback?.message : "";
       if (!message && phase === "offline") message = "Connection lost. Reconnecting…";
       if (!message && phase === "unavailable") message = snapshot?.message || "Open a Codex chat and enable Direct Switching on your Mac.";
@@ -641,7 +643,7 @@
           const name = labels[index];
           const effort = effortLabels[preset.effort] || preset.effort;
           button.append(led, status, element("span", "key-model", name.short), element("span", "key-effort", effort));
-          button.setAttribute("aria-label", `${preset.slot}: ${name.full}, ${effort}`);
+          button.setAttribute("aria-label", `${preset.slot}: ${name.short === name.full ? name.full : `${name.short}, ${name.full}`}, ${effort}`);
           button.title = `${preset.title || `${name.full} · ${effort}`} (⌘⌃${preset.slot})`;
           button.addEventListener("click", () => void controller.applyPreset(preset));
           return { button, status, preset };
