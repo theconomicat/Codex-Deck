@@ -335,11 +335,13 @@
       if (text !== undefined) node.textContent = text;
       return node;
     };
-    const selectedModel = () => controller.state.snapshot?.models?.find(model => model.id === modelSelect.value);
-    const selectedEffort = () => selectedModel()?.efforts[Number(effortRange.value)];
+    const activeModel = () => controller.state.snapshot?.models?.find(model => modelIdentity(model.id) === modelIdentity(controller.state.snapshot?.selection?.model));
+    const selectedEffort = () => activeModel()?.efforts[Number(effortRange.value)];
     const updateEffort = () => {
-      const efforts = selectedModel()?.efforts || [];
+      const model = activeModel();
+      const efforts = model?.efforts || [];
       const value = selectedEffort();
+      byID("effort-model").textContent = model?.name || (model ? modelLabel(model.id) : "Model unavailable");
       byID("effort-value").textContent = effortLabels[value] || value || "—";
       effortRange.setAttribute("aria-valuetext", effortLabels[value] || value || "Unavailable");
       byID("effort-min").textContent = effortLabels[efforts[0]] || efforts[0] || "";
@@ -348,15 +350,13 @@
       effortRange.style.setProperty("--effort-fill", `${percent}%`);
     };
     const configureEffort = preferred => {
-      const efforts = selectedModel()?.efforts || [];
+      const efforts = activeModel()?.efforts || [];
       effortRange.max = String(Math.max(0, efforts.length - 1));
       effortRange.value = String(Math.max(0, efforts.indexOf(efforts.includes(preferred) ? preferred : efforts.includes("high") ? "high" : efforts[0])));
       lastEffort = selectedEffort();
       updateEffort();
     };
-    const applyModel = () => {
-      const model = selectedModel();
-      const effort = selectedEffort();
+    const applyModel = (model = activeModel(), effort = selectedEffort()) => {
       if (!model || !effort || !controller.canApply()) return;
       if (isPresetSelected(controller.state.snapshot?.selection, { model: model.id, effort })) return;
       void controller.control({ type: "model", model: model.id, effort });
@@ -452,6 +452,7 @@
       byID("pairing").hidden = !pairing;
       document.querySelector(".remote").dataset.pairing = String(pairing);
       grid.hidden = pairing;
+      byID("effort-control").hidden = pairing;
       byID("micro-dock").hidden = pairing;
       if (pairing) for (const dialog of [controls, modelDialog, requestsDialog]) if (dialog.open) dialog.close();
       byID("logout").hidden = !controller.csrf;
@@ -475,12 +476,12 @@
         configureEffort(snapshot?.selection?.effort);
       }
       byID("open-model").disabled = !controller.canApply() || !models.length;
-      byID("model-control-label").textContent = snapshot?.selection?.model ? `${modelLabel(snapshot.selection.model)} · ${effortLabels[snapshot.selection.effort] || snapshot.selection.effort}` : "Model & effort";
-      byID("open-model").setAttribute("aria-label", `Model & effort: ${byID("model-control-label").textContent}`);
+      byID("model-control-label").textContent = snapshot?.selection?.model ? `${modelLabel(snapshot.selection.model)} · ${effortLabels[snapshot.selection.effort] || snapshot.selection.effort}` : "Choose model";
+      byID("open-model").setAttribute("aria-label", `Choose model: ${byID("model-control-label").textContent}`);
       byID("open-model").title = byID("model-control-label").textContent;
       modelSelect.disabled = !controller.canApply() || !models.length;
-      effortRange.disabled = modelSelect.disabled || (selectedModel()?.efforts.length || 0) < 2;
-      byID("model-status").textContent = busy ? "Applying…" : feedback?.tone === "error" ? feedback.message : "Drag to adjust. Release to apply.";
+      effortRange.disabled = modelSelect.disabled || (activeModel()?.efforts.length || 0) < 2;
+      byID("model-status").textContent = busy ? "Applying…" : feedback?.tone === "error" ? feedback.message : "Choose a model to apply it.";
       const dictation = snapshot?.dictation;
       byID("dictation").disabled = !controller.canApply() || !dictation?.available || (dictation.recording && !dictation.owned);
       byID("dictation").setAttribute("aria-pressed", phase === "offline" ? "mixed" : String(dictation?.recording === true));
@@ -548,7 +549,14 @@
     byID("open-model").addEventListener("click", () => modelDialog.showModal());
     byID("open-requests").addEventListener("click", () => requestsDialog.showModal());
     byID("dictation").addEventListener("click", () => void controller.control({ type: "dictation", recording: !controller.state.snapshot?.dictation?.recording }));
-    modelSelect.addEventListener("change", () => { tactile.play(); configureEffort(controller.state.snapshot?.selection?.effort); applyModel(); });
+    modelSelect.addEventListener("change", () => {
+      tactile.play();
+      const model = controller.state.snapshot?.models?.find(model => model.id === modelSelect.value);
+      if (!model) return;
+      const preferred = controller.state.snapshot?.selection?.effort;
+      const effort = model.efforts.includes(preferred) ? preferred : model.efforts.includes("high") ? "high" : model.efforts[0];
+      applyModel(model, effort);
+    });
     effortRange.addEventListener("input", () => {
       if (selectedEffort() !== lastEffort) { tactile.play(); lastEffort = selectedEffort(); }
       updateEffort();

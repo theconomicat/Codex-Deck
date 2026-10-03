@@ -25,11 +25,11 @@ User-provided screenshot of a weekly-only account: the green ring shows 94% rema
 
 <img src="docs/web-deck-mobile.png" alt="The same six-key deck arranged in two columns for portrait use" width="260" />
 
-<img src="docs/web-deck-slider.png" alt="Model selection and a horizontal reasoning-effort slider" width="500" />
+<img src="docs/web-deck-slider.png" alt="Main deck after changing Astra Ultra to Astra High with the always-visible effort slider" width="844" />
 
 <img src="docs/web-deck-questions.png" alt="A pending question with selectable answers and a request-specific text field" width="500" />
 
-Version 0.8.2, rendered with synthetic offline fixture data. These landscape, portrait, slider, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
+Version 0.8.3, rendered with synthetic offline fixture data. These landscape, portrait, slider, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
 
 ---
 
@@ -117,7 +117,7 @@ Turn off **Open Codex Automatically** to start only the usage companion. Turning
 3. Choose **Web Deck… → Start Web Deck** in the Mac menu. This starts a small local HTTP server; it is off by default and does not start automatically at login.
 4. Scan the QR code with your phone, or choose **Copy Pairing Link** and open that complete link in the phone's browser. The bare IP address opens the page but does not pair a device.
 5. Tap **Usage** to review the active chat, close the controls, then tap a model key. The page uses the first five configured presets in slot order from the same `presets.json` as the keyboard shortcuts. A key turns green after the host confirms the selection.
-6. Rotate the phone for **3 × 2 landscape**; portrait uses **2 × 3**. Five square model keys and a usage tile form a centered white-and-gray physical keypad, sized to fit the screen with the control strip. A compact control strip holds **Model & effort**, **Mac mic**, and any waiting **Requests**, without a page header or explanatory text.
+6. Rotate the phone for **3 × 2 landscape**; portrait uses **2 × 3**. Five square model keys and a usage tile form a centered white-and-gray physical keypad, sized to fit the screen with the control strip. The effort slider stays directly below the keys. **Model**, **Mac mic**, and waiting **Requests** sit beside the keys in landscape or below the slider in portrait, without a page header.
 7. Tap **Usage → Enter full screen** in supported browsers. On iPhone, use Safari's **Share → Add to Home Screen** and open the saved deck; pair again if that standalone browser has a separate session.
 
 White keys have a recessed face, gray raised edge, short press effect, and an always-enabled click from a bundled audio file; there is no sound toggle. A supported-device vibration accompanies the press. Playback starts from your tap and does not run continuously. The page cannot override device volume, hardware mute, or browser audio restrictions. If you hear nothing, check the media volume and browser sound settings. Reduced-motion preferences disable key movement; unsupported sound, vibration, or fullscreen does not block the controls.
@@ -132,7 +132,9 @@ If the active chat, preset, model catalog, or waiting request changes before an 
 
 #### Choose a model and slide the effort control
 
-Open **Model & effort** in the control strip. The model selector and effort levels come from the active Codex composer's available catalog; they are not a separate hard-coded model list. Choosing a model applies it with a supported effort. Drag the horizontal slider left or right, like a volume control. The label previews the supported effort level; release to apply. Arrow keys move one level, and Home/End move to the minimum/maximum. The change is confirmed by the Mac before the deck shows success.
+Use the **slider directly on the deck** to change the current model's effort. Tap **1 · Astra Ultra**, then slide to **High** and release: the chat becomes **Astra High**, without opening a dialog or changing the model. The bar follows every confirmed preset selection and exposes only that model's supported levels. Arrow keys move one level, and Home/End move to the minimum/maximum. The Mac confirms the result before the deck shows success.
+
+To select a model outside the five presets, open **Model** in the control strip. Its choices come from the active Codex composer. Choosing a model applies it with a supported effort, then the main slider follows the new model.
 
 This changes the current chat, not `presets.json`. To make a choice one of the five permanent keys, use **Model Presets → Edit Presets…** on the Mac as described below.
 
@@ -302,6 +304,7 @@ Version 0.4.0 adds five presets and migration; 0.5.0 adds Codex startup at login
 Version 0.6.0 adds the opt-in Web Deck and incremental usage reads. Its HTTP server, browser UI, and model bridge were checked with isolated fixtures; actual phone-to-Codex switching was not agent-tested.
 Version 0.7.0 added six tactile keys and landscape/fullscreen support. Version **0.8.0** adds always-enabled bundled click audio, a percentage-only ring, the live model/effort dial, Mac dictation, and scoped pending approvals/questions. Version **0.8.1** gives the deck square white keycaps, recessed faces, a cool gray board, and matching light dialogs. Its layout and controls were checked in an offline browser from 320px portrait to 1120px desktop.
 Version **0.8.2** replaces the rotary dial with a horizontal volume-style effort slider. Drag/release, touch, keyboard input, and five viewport sizes were checked in an offline browser.
+Version **0.8.3** puts the effort slider directly on the deck. Selecting a preset synchronizes the bar; moving it preserves the active model and changes only its effort. The Astra Ultra → High and Sol Extra High → High flows were verified with offline fixtures.
 The 0.8.0 interface was checked in a real browser with isolated fixture data, and the integration was reviewed against static Codex source. Live Codex actions, native microphone capture, and physical-phone sound/vibration were not validated for this release. Fixture checks establish UI and contract behavior, not guaranteed compatibility with a running Codex build.
 This does not establish Ultra availability for every account or coverage of every window/composer state.
 The integration uses internal structure and may need repair after Codex updates.

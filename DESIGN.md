@@ -94,7 +94,7 @@ components:
 
 The user's white Codex Micro photo sets the material direction: pale square keycaps, shallow dished faces, softly beveled edges, and visible key thickness on a cool gray board. Charcoal labels and icons stay clear against the light surfaces. Depth communicates pressable controls without adding branding or a persistent header.
 
-Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.8.2 web surface; its stylesheet remains the implementation source.
+Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.8.3 web surface; its stylesheet remains the implementation source.
 
 **Key Characteristics:**
 - Square white keys with recessed circular faces.
@@ -112,13 +112,13 @@ Use the native system UI stack, with rem sizes for dialogs, forms, and dock cont
 
 ## Layout
 
-Center the board within the viewport's safe-area padding. Six keys form a 3 × 2 grid in landscape and a 2 × 3 grid in portrait. The board calculation reserves its padding, gaps, and bottom dock before choosing the largest square key size that fits. Keep the grid and dock aligned.
+Center the board within the viewport's safe-area padding. Six keys form a 3 × 2 grid in landscape and a 2 × 3 grid in portrait. The board calculation reserves its padding, gaps, effort slider and controls before choosing the largest square key size that fits. In landscape the controls sit in a column to the right of the keys and the slider spans both columns below. Portrait places the slider and then the dock below the keys.
 
-The dock is 52px high; landscape at 440px height or less uses a 44px dock, 14px board padding, 12px key gap, and 18px dock gap. Below a 520px board container, shorten the visible model control to “Model”; below 350px hide its icon, and below 290px hide the Requests icon. Keep accessible names intact. Dialogs may scroll internally on short screens. Active-deck notices sit at the top so the Mac mic control stays available.
+The portrait dock is 52px high (44px below 650px viewport height). The effort row reserves 84px. Landscape at 440px height or less uses 12px board padding, 10px key gaps, a 14px row gap, a 96px control column and a 66px effort row with endpoint labels hidden. Below a 520px board container, shorten the visible model control to “Model”; below 350px hide its icon, and below 290px hide the Requests and microphone icons. Keep accessible names intact. Dialogs may scroll internally on short screens. Active-deck notices sit at the top so the Mac mic control stays available.
 
 ## Elevation & Depth
 
-Use gradients and structural shadows to distinguish the board, raised key edges, and circular recesses. Keys have two gray lower edges and a soft grounded shadow; the pale highlight belongs on the upper edge. The effort slider shares this material: a recessed 12px track and a raised white 34px thumb within a 52px touch area. The dark green fill and effort label follow the drag without animation. Press reduces the shadow and, for pointer input, moves the key down 4px over 100ms. Keyboard input and reduced motion avoid movement. Exact shadows and motion are recorded in `.impeccable/design.json`.
+Use gradients and structural shadows to distinguish the board, raised key edges, and circular recesses. Keys have two gray lower edges and a soft grounded shadow; the pale highlight belongs on the upper edge. The effort slider shares this material: a recessed 12px track and a raised white 34px thumb within a 48px touch area (44px in short landscape). The dark green fill and effort label follow the drag without animation. Press reduces the shadow and, for pointer input, moves the key down 4px over 100ms. Keyboard input and reduced motion avoid movement. Exact shadows and motion are recorded in `.impeccable/design.json`.
 
 ## Shapes
 
@@ -128,7 +128,7 @@ Keys retain a square silhouette with softly rounded corners. Each dished face is
 
 - **Preset keys:** model above effort, small key number and indicator at the top. Confirmed selection changes the recess, label, border, and LED; pending uses amber. Preserve selected, busy, disabled, and focus states. Never show success before host confirmation.
 - **Usage key:** a circular track with the percentage only; no “remaining” caption. Unknown, expired, or offline data uses an em dash. Opens the native dialog for the active chat, usage details, fullscreen, refresh, and disconnect.
-- **Model controls:** a native model select and a horizontal, volume-style range input with a visible effort label. Keep native touch and keyboard semantics. Pointer movement previews and release commits; choosing a model applies a supported effort.
+- **Model controls:** a native model selector in the Model dialog and an always-visible horizontal range input directly on the deck, labeled with the active model and effort. Keep native touch and keyboard semantics. Preset confirmation synchronizes the slider. Pointer movement previews and release changes only the active model’s effort; saved presets remain unchanged. Choosing a different model applies a supported effort.
 - **Dock and requests:** Model, Mac mic, and a Requests control only when supported requests are waiting. Recording has an explicit red state. Request dialogs show relevant options and text fields with clear Allow once/Deny treatments.
 - **Feedback:** visible focus outline, dismissible screen-reader-announced notices, short bundled click audio and supported-device vibration after gestures. Sound has no page toggle; hardware/browser mute remains authoritative. No idle animation or continuous audio.
 

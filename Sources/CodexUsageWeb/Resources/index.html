@@ -24,10 +24,15 @@
         </span>
       </button>
     </div>
+    <div id="effort-control" class="effort-control">
+      <div class="effort-heading"><label for="effort-range"><span id="effort-model">Model</span><span class="sr-only"> reasoning effort</span></label><output id="effort-value" for="effort-range">—</output></div>
+      <input id="effort-range" type="range" min="0" max="0" step="1" value="0" disabled>
+      <div class="effort-bounds" aria-hidden="true"><span id="effort-min"></span><span id="effort-max"></span></div>
+    </div>
     <nav id="micro-dock" class="micro-dock" aria-label="Codex controls">
       <button id="open-model" type="button" class="dock-button model-control" aria-haspopup="dialog" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16m12-16v16M2 9h8m4 6h8"/><circle cx="6" cy="9" r="2"/><circle cx="18" cy="15" r="2"/></svg>
-        <span id="model-control-label">Model & effort</span><span class="compact-model-label" aria-hidden="true">Model</span>
+        <span id="model-control-label">Choose model</span><span class="compact-model-label" aria-hidden="true">Model</span>
       </button>
       <button id="dictation" type="button" class="dock-button" aria-label="Start Mac dictation" aria-pressed="false" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>
@@ -49,15 +54,10 @@
     <noscript><p class="notice">Enable JavaScript to use the deck.</p></noscript>
   </main>
   <dialog id="model-controls" aria-labelledby="model-title">
-    <div class="dialog-heading"><h2 id="model-title">Model & effort</h2><button type="button" class="dialog-close" data-close="model-controls" aria-label="Close model controls">×</button></div>
+    <div class="dialog-heading"><h2 id="model-title">Model</h2><button type="button" class="dialog-close" data-close="model-controls" aria-label="Close model controls">×</button></div>
     <label class="field-label" for="model-select">Model</label>
     <select id="model-select"></select>
-    <div class="effort-control">
-      <div class="effort-heading"><label for="effort-range">Reasoning effort</label><output id="effort-value" for="effort-range">—</output></div>
-      <input id="effort-range" type="range" min="0" max="0" step="1" value="0" disabled>
-      <div class="effort-bounds" aria-hidden="true"><span id="effort-min"></span><span id="effort-max"></span></div>
-    </div>
-    <p id="model-status" class="secondary" role="status">Drag to adjust. Release to apply.</p>
+    <p id="model-status" class="secondary" role="status">Choose a model to apply it.</p>
   </dialog>
   <dialog id="requests" aria-labelledby="requests-title">
     <div class="dialog-heading"><h2 id="requests-title">Codex is waiting</h2><button type="button" class="dialog-close" data-close="requests" aria-label="Close requests">×</button></div>

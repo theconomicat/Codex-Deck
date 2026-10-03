@@ -10,17 +10,18 @@ For installation, pairing, and JSON preset editing, use the [English README](../
 | --- | --- | --- |
 | Five model keys | Tap a key; wait for the confirmed selection. | Applies the corresponding `presets.json` model and effort to the active saved chat. |
 | Usage | Read the percentage in the ring; tap for details, refresh, fullscreen, or disconnect. | Remaining quota, preferring the weekly window. Missing/expired/offline data is `—`. |
-| Model & effort | Select a model. Drag the horizontal slider, then release to apply effort. | Uses the active composer’s available catalog and each model’s supported levels. Does not edit saved presets. |
+| Effort slider | Drag the bar directly on the deck, then release. | Keeps the current model, changing only its effort. For example: preset 1 Astra Ultra → slider High = Astra High. Saved presets stay unchanged. |
+| Model | Open the model selector and choose a model. | Uses the active composer’s available catalog; the deck slider follows the confirmed model. |
 | Mac mic / Stop mic | Start dictation; stop when finished. | Uses the Mac microphone and inserts the transcript into the Mac composer without sending. |
 | Requests | Review the displayed chat and complete request, then respond. | Only supported pending requests for the active saved chat. |
 
-The grid is 3 × 2 in landscape and 2 × 3 in portrait. The smaller control strip keeps these extra actions available without a page header. The slider supports keyboard interaction, and reduced-motion settings remove key movement.
+The grid is 3 × 2 in landscape and 2 × 3 in portrait. The slider stays below the keys. The other controls sit to their right in landscape or below the slider in portrait, without a page header. The slider supports keyboard interaction, and reduced-motion settings remove key movement.
 
 Click feedback is always enabled. A bundled audio clip starts from a user gesture, with a short synthesized fallback; there is no sound preference to toggle or an old mute preference to restore. The page cannot override media volume, a hardware mute setting, or browser playback restrictions. Vibration is used where supported. These differences do not block the action itself.
 
 ## Model selection and effort
 
-The deck reads the visible composer’s model options instead of assuming that every account has the same models. Unavailable model choices and unsupported effort levels are rejected. Selecting a model applies it with a supported effort; dragging the horizontal slider previews a level and applies it on release. The Mac verifies the final model and effort before reporting success.
+The deck reads the visible composer’s model options instead of assuming that every account has the same models. Unavailable model choices and unsupported effort levels are rejected. Selecting a model applies it with a supported effort; dragging the always-visible deck slider previews a level and applies it on release, preserving the active model. The Mac verifies the final model and effort before reporting success.
 
 These controls change subsequent turns of the current chat. They do not restart a running response, send a prompt, or rewrite the five configured presets. Use **Model Presets → Edit Presets…** on the Mac to save a recurring combination.
 
