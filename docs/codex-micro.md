@@ -2,7 +2,7 @@
 
 Web Deck keeps the five preset keys and adds a compact control strip for model/effort, Mac dictation, and the active chat’s waiting requests. It runs in the phone browser on the same private Wi-Fi as Codex Deck. It does not require a Codex Micro or Stream Deck device.
 
-For installation, pairing, and JSON preset editing, use the [English README](../README.md#use-your-phone-as-a-web-deck) or [한국어 설명서](../README.ko.md#휴대폰을-web-deck으로-사용하기).
+For installation, pairing, and JSON preset editing, use the [English guide](guide.md) or [한국어 설명서](guide.ko.md).
 
 ## Controls
 
