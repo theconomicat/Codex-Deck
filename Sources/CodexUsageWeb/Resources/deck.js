@@ -37,7 +37,7 @@
       this.timer = null;
       this.readPromise = null;
       this.stopped = false;
-      this.state = { phase: "loading", snapshot: null, busy: false, applyingSlot: null, feedback: null };
+      this.state = { phase: "loading", snapshot: null, busy: false, applyingSlot: null, pendingSelection: null, queuedSelection: null, feedback: null };
     }
 
     emit() { this.onChange(this.state); }
@@ -151,12 +151,61 @@
       return this.state.phase === "ready" && !!this.state.snapshot?.target?.id && !this.state.busy && !this.state.snapshot?.busy;
     }
 
+    displaySelection() {
+      const targetID = this.state.snapshot?.target?.id;
+      return [this.state.queuedSelection, this.state.pendingSelection].find(value => value?.targetID === targetID && targetID) || this.state.snapshot?.selection;
+    }
+
+    canAdjustEffort() {
+      return this.state.phase === "ready" && !!this.state.snapshot?.target?.id && !this.state.snapshot?.busy &&
+        (!this.state.busy || !!this.state.pendingSelection);
+    }
+
+    adjustEffort(model, effort) {
+      if (!this.canAdjustEffort()) return Promise.resolve(false);
+      const action = { type: "model", model, effort };
+      if (!validControl(action, this.state.snapshot)) return Promise.resolve(false);
+      if (this.state.busy) {
+        // One trailing value, scoped to the displayed chat; never parallel writes.
+        this.state.queuedSelection = { model, effort, targetID: this.state.snapshot.target.id };
+        this.emit();
+        return Promise.resolve(true);
+      }
+      if (isPresetSelected(this.state.snapshot.selection, action)) return Promise.resolve(true);
+      return this.control(action);
+    }
+
+    async finishAction(succeeded, changesSelection) {
+      const queued = this.state.queuedSelection;
+      this.state.busy = false;
+      this.state.applyingSlot = null;
+      this.state.pendingSelection = null;
+      this.state.queuedSelection = null;
+      if (succeeded && changesSelection && queued && !this.stopped && this.canApply() &&
+          queued.targetID === this.state.snapshot.target.id &&
+          validControl({ type: "model", ...queued }, this.state.snapshot) &&
+          !isPresetSelected(this.state.snapshot.selection, queued)) {
+        // Promote before emitting so an older acknowledgement cannot move the bar back.
+        await this.control({ type: "model", model: queued.model, effort: queued.effort });
+        return;
+      }
+      this.emit();
+      if (this.state.phase !== "pairing") {
+        // Selection writes already carry a host-verified acknowledgement. Publish
+        // it atomically and resume normal polling instead of repainting old data.
+        if (succeeded && changesSelection) this.scheduleRefresh();
+        else await this.refresh();
+      }
+    }
+
     async applyPreset(preset) {
       if (!this.canApply()) return false;
       const targetID = this.state.snapshot.target.id;
       const expected = { slot: preset.slot, model: preset.model, effort: preset.effort };
       this.state.busy = true;
       this.state.applyingSlot = preset.slot;
+      this.state.pendingSelection = { model: expected.model, effort: expected.effort, targetID };
+      let succeeded = false;
       this.state.feedback = null;
       this.clearTimer();
       this.emit();
@@ -171,16 +220,15 @@
         }
         const result = await this.request("/api/preset", { ...expected, targetID });
         if (result.ok !== true) throw new Error(result.error || "The model change could not be confirmed. Check your Mac before retrying.");
+        this.state.snapshot.selection = { model: expected.model, effort: expected.effort };
+        succeeded = true;
         this.state.feedback = { tone: "success", message: result.message || `${modelLabel(preset.model)} · ${effortLabels[preset.effort] || preset.effort} applied.` };
         return true;
       } catch (error) {
         this.setError(error, true);
         return false;
       } finally {
-        this.state.busy = false;
-        this.state.applyingSlot = null;
-        this.emit();
-        if (this.state.phase !== "pairing") await this.refresh();
+        await this.finishAction(succeeded, true);
       }
     }
 
@@ -189,6 +237,9 @@
       const targetID = this.state.snapshot.target.id;
       // Capture the exact reviewed request before allowing an in-flight poll to finish.
       const expected = JSON.parse(JSON.stringify(action));
+      const changesSelection = expected.type === "model";
+      let succeeded = false;
+      if (changesSelection) this.state.pendingSelection = { model: expected.model, effort: expected.effort, targetID };
       this.state.busy = true;
       this.state.feedback = null;
       this.clearTimer();
@@ -202,15 +253,15 @@
         }
         const result = await this.request("/api/control", { ...expected, targetID });
         if (result.ok !== true) throw new Error(result.error || "The action could not be confirmed. Check your Mac before retrying.");
+        if (changesSelection) this.state.snapshot.selection = { model: expected.model, effort: expected.effort };
+        succeeded = true;
         this.state.feedback = { tone: "success", message: result.message || "Applied." };
         return true;
       } catch (error) {
         this.setError(error, true);
         return false;
       } finally {
-        this.state.busy = false;
-        this.emit();
-        if (this.state.phase !== "pairing") await this.refresh();
+        await this.finishAction(succeeded, changesSelection);
       }
     }
 
@@ -245,7 +296,7 @@
       if (this.isVisible() && this.state.phase !== "pairing") void this.refresh();
     }
 
-    stop() { this.stopped = true; this.clearTimer(); }
+    stop() { this.stopped = true; this.state.queuedSelection = null; this.clearTimer(); }
   }
 
   function usagePercent(meter, now = Date.now()) {
@@ -277,8 +328,12 @@
   // Media playback starts synchronously inside the gesture. Unlike a muted old
   // preference or Web Audio-only click, this uses the browser's media channel.
   function pressFeedback(window) {
-    let media, audio, suspendTimer;
-    try { media = new window.Audio("/click.wav"); media.preload = "auto"; media.volume = 0.75; } catch (_) {}
+    let audio, suspendTimer, voice = 0;
+    const voices = [];
+    const createVoice = () => {
+      try { const media = new window.Audio("/click.wav"); media.preload = "auto"; media.volume = 0.65; return media; } catch (_) { return null; }
+    };
+    voices[0] = createVoice();
     const fallback = () => {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) return;
@@ -286,29 +341,34 @@
         audio ||= new AudioContext();
         clearTimeout(suspendTimer);
         void audio.resume().then(() => {
-          const oscillator = audio.createOscillator();
-          const gain = audio.createGain();
           const now = audio.currentTime;
-          oscillator.type = "triangle";
-          oscillator.frequency.setValueAtTime(900, now);
-          oscillator.frequency.exponentialRampToValueAtTime(250, now + 0.045);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
-          oscillator.connect(gain); gain.connect(audio.destination);
-          oscillator.start(now); oscillator.stop(now + 0.06);
-          oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
-          suspendTimer = setTimeout(() => { void audio.suspend().catch(() => {}); }, 100);
+          for (const [frequency, volume] of [[520, 0.28], [1040, 0.045]]) {
+            const oscillator = audio.createOscillator(), gain = audio.createGain();
+            oscillator.type = "sine";
+            oscillator.frequency.setValueAtTime(frequency, now);
+            oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.85, now + 0.06);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(volume, now + 0.008);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+            gain.gain.linearRampToValueAtTime(0, now + 0.18);
+            oscillator.connect(gain); gain.connect(audio.destination);
+            oscillator.start(now); oscillator.stop(now + 0.18);
+            oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+          }
+          suspendTimer = setTimeout(() => { void audio.suspend().catch(() => {}); }, 240);
         }).catch(() => {});
       } catch (_) {}
     };
     return {
       play() {
         try { window.navigator.vibrate?.(12); } catch (_) {}
+        const media = voices[voice] ||= createVoice();
+        voice = (voice + 1) % 3;
         if (!media) { fallback(); return; }
         try { media.currentTime = 0; const playing = media.play(); playing?.catch(fallback); }
         catch (_) { fallback(); }
       },
-      suspend() { if (media) media.pause(); if (audio) void audio.suspend().catch(() => {}); }
+      suspend() { clearTimeout(suspendTimer); for (const media of voices) media?.pause(); if (audio) void audio.suspend().catch(() => {}); }
     };
   }
 
@@ -328,11 +388,10 @@
     let catalogSignature = "";
     let requestSignature = "";
     let effortDragging = false;
-    let lastEffort = "";
+    let effortGesture = null;
     const catalog = byID("model-catalog");
     let modelKeys = [];
     let showingModels = false;
-    let pendingModel = null;
     const effortRange = byID("effort-range");
     const requestsDialog = byID("requests");
     const element = (tag, className, text) => {
@@ -341,8 +400,8 @@
       if (text !== undefined) node.textContent = text;
       return node;
     };
-    const activeModel = () => controller.state.snapshot?.models?.find(model => modelIdentity(model.id) === modelIdentity(controller.state.snapshot?.selection?.model));
-    const selectedEffort = () => activeModel()?.efforts[Number(effortRange.value)];
+    const activeModel = () => controller.state.snapshot?.models?.find(model => modelIdentity(model.id) === modelIdentity(controller.displaySelection()?.model));
+    const selectedEffort = () => activeModel()?.efforts[Math.round(Number(effortRange.value))];
     const updateEffort = () => {
       const model = activeModel();
       const efforts = model?.efforts || [];
@@ -359,17 +418,15 @@
       const efforts = activeModel()?.efforts || [];
       effortRange.max = String(Math.max(0, efforts.length - 1));
       effortRange.value = String(Math.max(0, efforts.indexOf(efforts.includes(preferred) ? preferred : efforts.includes("high") ? "high" : efforts[0])));
-      lastEffort = selectedEffort();
       updateEffort();
     };
     const applyModel = async (model = activeModel(), effort = selectedEffort()) => {
       if (!model || !effort || !controller.canApply()) return;
       if (isPresetSelected(controller.state.snapshot?.selection, { model: model.id, effort })) return;
       const focusedControl = document.activeElement;
-      pendingModel = model.id;
       try { await controller.control({ type: "model", model: model.id, effort }); }
       finally {
-        pendingModel = null; render(controller.state);
+        render(controller.state);
         // Disabling an in-flight control drops its keyboard focus in Chromium.
         if (document.documentElement.dataset.input === "keyboard" && document.activeElement === document.body && focusedControl?.isConnected && !focusedControl.disabled) focusedControl.focus();
       }
@@ -461,6 +518,9 @@
     };
     const render = state => {
       const { snapshot, phase, busy, feedback } = state;
+      const selection = controller.displaySelection();
+      const pending = !!state.pendingSelection;
+      document.querySelector(".deck-surface").dataset.applying = String(busy);
       const pairing = phase === "pairing";
       byID("pairing").hidden = !pairing;
       document.querySelector(".remote").dataset.pairing = String(pairing);
@@ -491,14 +551,14 @@
           button.append(element("span", "catalog-name", model.name || modelLabel(model.id)));
           button.addEventListener("click", () => {
             const current = controller.state.snapshot?.models?.find(item => item.id === model.id);
-            if (current) void applyModel(current, modelEffort(current, controller.state.snapshot?.selection?.effort));
+            if (current) void applyModel(current, modelEffort(current, controller.displaySelection()?.effort));
           });
           return { button, model };
         });
         catalog.replaceChildren(...modelKeys.map(key => key.button));
       }
-      if (!busy && !effortDragging) {
-        configureEffort(snapshot?.selection?.effort);
+      if (!effortDragging) {
+        configureEffort(selection?.effort);
       }
       byID("key-surface").dataset.view = showingModels ? "models" : "presets";
       grid.inert = showingModels;
@@ -509,12 +569,13 @@
       byID("open-model").setAttribute("aria-expanded", String(showingModels));
       byID("open-model").setAttribute("aria-label", showingModels ? "Presets: return to saved model presets" : "Models: show available models");
       byID("open-model").title = showingModels ? "Return to saved presets" : "Choose a model";
-      effortRange.disabled = !controller.canApply() || (activeModel()?.efforts.length || 0) < 2;
+      effortRange.disabled = !controller.canAdjustEffort() || (activeModel()?.efforts.length || 0) < 2;
+      effortRange.setAttribute("aria-busy", String(pending));
       for (const { button, model } of modelKeys) {
-        const selected = phase === "ready" && modelIdentity(model.id) === modelIdentity(snapshot?.selection?.model);
+        const selected = phase === "ready" && modelIdentity(model.id) === modelIdentity(selection?.model);
         button.disabled = !controller.canApply();
         button.setAttribute("aria-pressed", String(selected));
-        button.setAttribute("aria-busy", String(busy && pendingModel === model.id));
+        button.setAttribute("aria-busy", String(pending && selected));
       }
       catalog.setAttribute("aria-busy", String(phase === "loading" || busy));
       const dictation = snapshot?.dictation;
@@ -563,8 +624,8 @@
         grid.replaceChildren(...keys.map(key => key.button), usageKey);
       }
       for (const { button, status, preset } of keys) {
-        const selected = phase === "ready" && isPresetSelected(snapshot?.selection, preset);
-        const applying = state.applyingSlot === preset.slot;
+        const selected = phase === "ready" && isPresetSelected(selection, preset);
+        const applying = pending && selected;
         button.disabled = !controller.canApply();
         button.setAttribute("aria-pressed", String(selected));
         button.setAttribute("aria-busy", String(applying));
@@ -587,14 +648,39 @@
     });
     byID("open-requests").addEventListener("click", () => requestsDialog.showModal());
     byID("dictation").addEventListener("click", () => void controller.control({ type: "dictation", recording: !controller.state.snapshot?.dictation?.recording }));
-    effortRange.addEventListener("input", () => {
-      if (selectedEffort() !== lastEffort) { tactile.play(); lastEffort = selectedEffort(); }
-      updateEffort();
+    const commitEffort = () => {
+      effortDragging = false;
+      const model = activeModel(), effort = selectedEffort();
+      const gesture = effortGesture;
+      effortGesture = null;
+      if (gesture && (gesture.targetID !== controller.state.snapshot?.target?.id || gesture.model !== model?.id)) {
+        controller.state.feedback = { tone: "error", source: "action", message: "The active chat or model changed. Review the deck before adjusting effort again." };
+        render(controller.state);
+        return;
+      }
+      if (model && effort) {
+        effortRange.value = String(model.efforts.indexOf(effort));
+        updateEffort();
+        tactile.play(); void controller.adjustEffort(model.id, effort);
+      }
+    };
+    effortRange.addEventListener("input", updateEffort);
+    effortRange.addEventListener("pointerdown", () => {
+      effortDragging = true;
+      effortGesture = { targetID: controller.state.snapshot?.target?.id, model: activeModel()?.id };
     });
-    effortRange.addEventListener("pointerdown", () => { effortDragging = true; });
     effortRange.addEventListener("pointerup", () => { effortDragging = false; });
-    effortRange.addEventListener("change", () => { effortDragging = false; applyModel(); });
-    effortRange.addEventListener("pointercancel", () => { effortDragging = false; render(controller.state); });
+    effortRange.addEventListener("change", commitEffort);
+    effortRange.addEventListener("pointercancel", () => { effortDragging = false; effortGesture = null; render(controller.state); });
+    effortRange.addEventListener("keydown", event => {
+      if (!["ArrowLeft", "ArrowDown", "ArrowRight", "ArrowUp", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      effortGesture = null;
+      const max = Number(effortRange.max), current = Math.round(Number(effortRange.value));
+      const value = event.key === "Home" ? 0 : event.key === "End" ? max : current + (["ArrowRight", "ArrowUp"].includes(event.key) ? 1 : -1);
+      effortRange.value = String(Math.max(0, Math.min(max, value)));
+      updateEffort(); commitEffort();
+    });
     byID("fullscreen").addEventListener("click", async () => {
       const help = byID("fullscreen-help");
       if (!document.fullscreenEnabled) {

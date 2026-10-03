@@ -9,7 +9,7 @@ function snapshot(overrides = {}) {
 function response(payload, status = 200) { return { ok: status >= 200 && status < 300, status, json: async () => payload }; }
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
 function harness(responses) {
-  const requests = [], timers = new Map();
+  const requests = [], timers = new Map(), emissions = [];
   let nextID = 0, visible = true;
   const controller = new DeckController({
     fetch: async (path, options) => {
@@ -19,11 +19,11 @@ function harness(responses) {
       if (next === undefined) throw new Error('Unexpected fixture request: ' + path);
       return next;
     },
-    onChange() {}, isVisible: () => visible,
+    onChange(state) { emissions.push(JSON.parse(JSON.stringify({ ...state, displayed: controller.displaySelection() }))); }, isVisible: () => visible,
     schedule: (fn, delay) => { const id = ++nextID; timers.set(id, { fn, delay }); return id; },
     cancel: id => timers.delete(id)
   });
-  return { controller, requests, timers, setVisible: value => { visible = value; } };
+  return { controller, requests, timers, emissions, setVisible: value => { visible = value; } };
 }
 
 test('default timer adapters do not pass the controller as a browser timer receiver', () => {
@@ -326,4 +326,110 @@ test('model-name keys preserve a supported effort and choose a supported fallbac
   assert.equal(modelEffort({ efforts: ['low', 'high', 'xhigh', 'ultra'] }, 'ultra'), 'ultra');
   assert.equal(modelEffort({ efforts: ['medium', 'high', 'xhigh'] }, 'ultra'), 'high');
   assert.equal(modelEffort({ efforts: ['low', 'medium'] }, 'ultra'), 'low');
+});
+
+const astraState = () => snapshot({ models, selection: { model: 'gpt-6-astra', effort: 'ultra' } });
+
+test('preset preview survives an old poll and becomes confirmed without an old-state repaint', async () => {
+  const pollGate = deferred(), writeGate = deferred();
+  const h = harness([response(snapshot()), pollGate.promise, writeGate.promise]);
+  await h.controller.start();
+  const poll = h.controller.refresh();
+  const applying = h.controller.applyPreset(preset);
+  assert.equal(h.controller.displaySelection().effort, 'ultra');
+  assert.equal(h.controller.state.snapshot.selection.effort, 'high');
+  pollGate.resolve(response(snapshot()));
+  await poll;
+  assert.equal(h.controller.displaySelection().effort, 'ultra');
+  writeGate.resolve(response({ ok: true }));
+  assert.equal(await applying, true);
+  assert.equal(h.controller.state.snapshot.selection.effort, 'ultra');
+  assert.ok(h.emissions.slice(2).every(state => state.displayed.effort === 'ultra'));
+  assert.equal(h.requests.length, 3); // no immediate read of older state after acknowledgement
+  assert.equal(h.controller.state.pendingSelection, null);
+});
+
+test('rapid slider changes keep the latest position and send one trailing write', async () => {
+  const first = deferred(), last = deferred();
+  const h = harness([response(astraState()), first.promise, last.promise]);
+  await h.controller.start();
+  const applying = h.controller.adjustEffort('gpt-6-astra', 'high');
+  assert.equal(h.controller.canAdjustEffort(), true);
+  await h.controller.adjustEffort('gpt-6-astra', 'medium');
+  await h.controller.adjustEffort('gpt-6-astra', 'xhigh');
+  assert.equal(h.controller.displaySelection().effort, 'xhigh');
+  const marker = h.emissions.length;
+  first.resolve(response({ ok: true }));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(h.requests.length, 3);
+  assert.equal(JSON.parse(h.requests[2].options.body).effort, 'xhigh');
+  assert.equal(h.controller.state.snapshot.selection.effort, 'high');
+  assert.equal(h.controller.displaySelection().effort, 'xhigh');
+  last.resolve(response({ ok: true }));
+  await applying;
+  assert.equal(h.controller.state.snapshot.selection.effort, 'xhigh');
+  assert.ok(h.emissions.slice(marker).every(state => state.displayed.effort === 'xhigh'));
+  assert.equal(h.controller.state.queuedSelection, null);
+});
+
+test('a failed slider write discards trailing input and restores the confirmed selection', async () => {
+  const gate = deferred();
+  const h = harness([response(astraState()), gate.promise, response(astraState())]);
+  await h.controller.start();
+  const applying = h.controller.adjustEffort('gpt-6-astra', 'high');
+  await h.controller.adjustEffort('gpt-6-astra', 'medium');
+  gate.resolve(response({ error: 'The model changed.' }, 409));
+  assert.equal(await applying, false);
+  assert.equal(h.requests.filter(request => request.path === '/api/control').length, 1);
+  assert.equal(h.controller.displaySelection().effort, 'ultra');
+  assert.equal(h.controller.state.queuedSelection, null);
+  assert.equal(h.controller.state.feedback.tone, 'error');
+});
+
+test('a target change while waiting for a poll cancels slider input and its queue', async () => {
+  const gate = deferred();
+  const changed = { ...astraState(), target: { id: 'chat-b', title: 'Another chat' } };
+  const h = harness([response(astraState()), gate.promise, response(changed)]);
+  await h.controller.start();
+  const poll = h.controller.refresh();
+  const applying = h.controller.adjustEffort('gpt-6-astra', 'high');
+  await h.controller.adjustEffort('gpt-6-astra', 'medium');
+  gate.resolve(response(changed));
+  await poll;
+  assert.equal(await applying, false);
+  assert.equal(h.requests.some(request => request.path === '/api/control'), false);
+  assert.equal(h.controller.state.queuedSelection, null);
+});
+
+test('closing the page never sends an effort queued behind an outstanding action', async () => {
+  const gate = deferred();
+  const h = harness([response(astraState()), gate.promise]);
+  await h.controller.start();
+  const applying = h.controller.adjustEffort('gpt-6-astra', 'high');
+  await h.controller.adjustEffort('gpt-6-astra', 'medium');
+  h.controller.stop();
+  gate.resolve(response({ ok: true }));
+  await applying;
+  assert.equal(h.requests.length, 2);
+  assert.equal(h.timers.size, 0);
+});
+
+test('invalid confirmation never commits the requested model to the confirmed state', async () => {
+  const h = harness([response(astraState()), response({ ok: false }), response(astraState())]);
+  await h.controller.start();
+  assert.equal(await h.controller.adjustEffort('gpt-6-astra', 'high'), false);
+  assert.equal(h.controller.state.snapshot.selection.effort, 'ultra');
+});
+
+test('short sound tails use bounded separate voices instead of cutting off every previous press', () => {
+  const voices = [];
+  const window = { navigator: {}, Audio: function () {
+    const voice = { currentTime: 0, plays: 0, play() { this.plays++; return Promise.resolve(); }, pause() {} };
+    voices.push(voice); return voice;
+  } };
+  const feedback = pressFeedback(window);
+  for (let i = 0; i < 5; i++) feedback.play();
+  assert.equal(voices.length, 3);
+  assert.deepEqual(voices.map(voice => voice.plays), [2, 2, 1]);
+  assert.ok(voices.every(voice => voice.volume <= 0.65));
 });

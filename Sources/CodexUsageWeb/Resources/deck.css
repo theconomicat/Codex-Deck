@@ -72,6 +72,7 @@ h1, h2, p { margin: 0; }
 .deck-key[aria-busy="true"] { border-color: var(--warm); }
 .deck-key:disabled { opacity: .48; }
 .deck-key[aria-busy="true"]:disabled { opacity: 1; }
+.deck-surface[data-applying="true"] .deck-key:disabled, .deck-surface[data-applying="true"] .dock-button:disabled { opacity: 1; cursor: wait; }
 .deck-key:active:not(:disabled) { box-shadow: 0 2px 1px #adb8bc, 0 3px 1px #98a5aa, 0 5px 7px #40505738, inset 0 2px 1px #fff; }
 .usage-key { padding-top: 22%; }
 .settings-icon { font-size: 1.3rem; line-height: .5; letter-spacing: 2px; }

@@ -126,6 +126,8 @@ Turn off **Open Codex Automatically** to start only the usage companion. Turning
 
 White keys have a recessed face, gray raised edge, short press effect, and an always-enabled click from a bundled audio file; there is no sound toggle. A supported-device vibration accompanies the press. Playback starts from your tap and does not run continuously. The page cannot override device volume, hardware mute, or browser audio restrictions. If you hear nothing, check the media volume and browser sound settings. Reduced-motion preferences disable key movement; unsupported sound, vibration, or fullscreen does not block the controls.
 
+The 0.9.1 tone has a soft attack and a rounded 180 ms tail. Rapid button presses can overlap briefly instead of cutting off the previous tone; the slider plays once on release rather than at every crossed step. The original sound can be regenerated with `python3 Scripts/generate_feedback_sound.py`.
+
 The sixth tile shows **remaining quota as a percentage only** inside its ring, with no “remaining” label underneath. It prioritizes the weekly window (otherwise the first available window). Tap **Usage** for full usage details and reset information. Missing or expired quota, or a lost connection, displays **—**. Connection and error notices appear only when needed.
 
 A pairing link expires after **5 minutes** and can be used **once**. Choose **New Pairing Link** for another device or an expired link; existing paired devices stay connected. Each paired browser session lasts up to **8 hours**. Keep pairing links private.
@@ -135,6 +137,8 @@ A pairing link expires after **5 minutes** and can be used **once**. Choose **Ne
 If the active chat, preset, model catalog, or waiting request changes before an action is applied, the action is rejected. Open **Usage**, refresh, check the active chat, and try again. New unsaved drafts and ambiguous composers are not remote targets.
 
 #### Choose a model and slide the effort control
+
+Selections appear immediately as pending. A confirmed response keeps the same key and slider position, without briefly repainting the old selection. Dragging is continuous and release selects the nearest supported level. You can keep adjusting while a change is in progress: only the most recent trailing value is sent after the current request. A failure drops queued input and restores the last confirmed state; changing chats during a drag cancels that gesture.
 
 Use the **slider directly on the deck** to change the current model's effort. Tap **1 · Astra Ultra**, then slide to **High** and release: the chat becomes **Astra High**, without opening a dialog or changing the model. The bar follows every confirmed preset selection and exposes only that model's supported levels. Arrow keys move one level, and Home/End move to the minimum/maximum. The Mac confirms the result before the deck shows success.
 
@@ -311,6 +315,7 @@ Version 0.6.0 adds the opt-in Web Deck and incremental usage reads. Its HTTP ser
 Version 0.7.0 added six tactile keys and landscape/fullscreen support. Version **0.8.0** adds always-enabled bundled click audio, a percentage-only ring, the live model/effort dial, Mac dictation, and scoped pending approvals/questions. Version **0.8.1** gives the deck square white keycaps, recessed faces, a cool gray board, and matching light dialogs. Its layout and controls were checked in an offline browser from 320px portrait to 1120px desktop.
 Version **0.8.2** replaces the rotary dial with a horizontal volume-style effort slider. Drag/release, touch, keyboard input, and five viewport sizes were checked in an offline browser.
 Version **0.9.0** renames the app to Codex Deck and adds an inline **Models / Presets** view switch. The model keys show names only; selecting one keeps a supported effort. Browser fixtures verify view switching, model selection, slider behavior, and disconnected states.
+Version **0.9.1** adds a softer original key tone, immediate pending selection, continuous slider movement, and a single latest-value effort queue. Successful model writes use the host-verified acknowledgement immediately and resume normal polling, eliminating the extra old-state repaint and read. Slow-response, failure, target-change, and keyboard cases were checked with isolated fixtures.
 Version **0.8.3** puts the effort slider directly on the deck. Selecting a preset synchronizes the bar; moving it preserves the active model and changes only its effort. The Astra Ultra → High and Sol Extra High → High flows were verified with offline fixtures.
 The 0.8.0 interface was checked in a real browser with isolated fixture data, and the integration was reviewed against static Codex source. Live Codex actions, native microphone capture, and physical-phone sound/vibration were not validated for this release. Fixture checks establish UI and contract behavior, not guaranteed compatibility with a running Codex build.
 This does not establish Ultra availability for every account or coverage of every window/composer state.

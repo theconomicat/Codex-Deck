@@ -132,6 +132,8 @@ Keys retain a square silhouette with softly rounded corners. Each dished face is
 - **Dock and requests:** Model, Mac mic, and a Requests control only when supported requests are waiting. Recording has an explicit red state. Request dialogs show relevant options and text fields with clear Allow once/Deny treatments.
 - **Feedback:** visible focus outline, dismissible screen-reader-announced notices, short bundled click audio and supported-device vibration after gestures. Sound has no page toggle; hardware/browser mute remains authoritative. No idle animation or continuous audio.
 
+In 0.9.1, pending selection uses the requested key face immediately with an amber busy indicator; confirmation retains its position. Other keys keep their normal opacity during a write. The native range follows fractional pointer movement and snaps to the nearest supported effort on release; it stays enabled for further effort changes while one model write is pending. Only the last trailing value is sent. Do not animate acknowledgement or keyboard transitions. The original 180 ms sine tone has a gentle attack and release, with at most three brief overlapping media voices; slider sound plays only on commit.
+
 ## Do's and Don'ts
 
 - **Do** preserve square keys, readable labels, and visible keyboard focus across supported viewport sizes.

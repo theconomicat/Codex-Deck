@@ -25,6 +25,7 @@ The native companion remains the host and source of presets and usage. A browser
 - Show only the active chat’s supported pending questions and full approval scope; allow once/deny and request-specific answers only. Unsupported or oversized requests stay on the Mac.
 - Use bundled click audio on gestures without a sound toggle. Device/browser mute cannot be overridden.
 - The horizontal slider is always visible on the main deck. It follows confirmed presets and changes only the active model’s effort on release; show only host-reported model capabilities.
+- Show requested selections immediately as pending and commit host acknowledgements without an old-state repaint. Keep the slider responsive during a write, coalescing further releases to one trailing value for the same chat. Discard queued input on failure, target change, or page close.
 - Browser fixtures establish layout and contract behavior, not live Codex or physical-phone compatibility.
 - Pause polling while the page is hidden; foreground polling is no more frequent than once every five seconds and never overlaps another request.
 

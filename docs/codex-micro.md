@@ -23,6 +23,8 @@ Click feedback is always enabled. A bundled audio clip starts from a user gestur
 
 The deck reads the visible composer’s model options instead of assuming that every account has the same models. Unavailable model choices and unsupported effort levels are rejected. Selecting a model applies it with a supported effort; dragging the always-visible deck slider previews a level and applies it on release, preserving the active model. The Mac verifies the final model and effort before reporting success.
 
+The requested selection stays visible as pending while the Mac responds. Its acknowledgement confirms that same position without reverting to the previous state. While a model write is pending, further slider releases replace a single trailing value; they never start parallel writes. Failure or a changed chat cancels the queue. A soft original tone plays on a button press or slider release, with no per-step tick during dragging.
+
 These controls change subsequent turns of the current chat. They do not restart a running response, send a prompt, or rewrite the five configured presets. Use **Model Presets → Edit Presets…** on the Mac to save a recurring combination.
 
 The bridge requires one unambiguous saved chat with its composer visible. If the target or catalog changes while a control is being used, refresh and check the target in **Usage** before retrying.
