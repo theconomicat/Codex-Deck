@@ -3,7 +3,7 @@
 [한국어 사용 설명서](README.ko.md)
 
 A macOS menu bar companion for **remaining Codex quota**, **model preset shortcuts**, and a **phone Web Deck**.
-Change the current chat's model and reasoning effort together without opening the model picker. Use five preset keys or a model-and-effort dial in your phone's browser on the same Wi-Fi. Start Mac dictation, review a waiting permission request, or answer Codex's current question from the same deck. No Stream Deck hardware is required.
+Change the current chat's model and reasoning effort together without opening the model picker. Use five preset keys or a model selector and horizontal effort slider in your phone's browser on the same Wi-Fi. Start Mac dictation, review a waiting permission request, or answer Codex's current question from the same deck. No Stream Deck hardware is required.
 
 ## Preview
 
@@ -25,11 +25,11 @@ User-provided screenshot of a weekly-only account: the green ring shows 94% rema
 
 <img src="docs/web-deck-mobile.png" alt="The same six-key deck arranged in two columns for portrait use" width="260" />
 
-<img src="docs/web-deck-dial.png" alt="Model selection and reasoning-effort dial with a keyboard-accessible slider" width="500" />
+<img src="docs/web-deck-slider.png" alt="Model selection and a horizontal reasoning-effort slider" width="500" />
 
 <img src="docs/web-deck-questions.png" alt="A pending question with selectable answers and a request-specific text field" width="500" />
 
-Version 0.8.1, rendered with synthetic offline fixture data. These landscape, portrait, dial, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
+Version 0.8.2, rendered with synthetic offline fixture data. These landscape, portrait, slider, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
 
 ---
 
@@ -53,7 +53,7 @@ Your Codex account must offer the selected model and effort. Unsupported choices
 ### Install the app
 
 1. Download `Codex-Usage-macos.zip` from the desired [release](https://github.com/theconomicat/Codex-Usage/releases).
-   **The model dial, Mac mic, and pending-request controls require 0.8.0 or newer**. Web Deck first shipped in 0.6.0; the five keyboard presets require 0.4.0 or newer. If that version is not published yet, build from source below.
+   **Model/effort controls, Mac mic, and pending-request controls require 0.8.0 or newer**. Web Deck first shipped in 0.6.0; the five keyboard presets require 0.4.0 or newer. If that version is not published yet, build from source below.
 2. Unzip and move `Codex-Usage.app` into **`/Applications`**.
 3. Quit an older running copy with **Quit Codex-Usage** before opening the new app.
 4. Click the Codex-Usage icon in the macOS menu bar. It is a menu bar app; a persistent Dock window is not expected.
@@ -130,9 +130,9 @@ A pairing link expires after **5 minutes** and can be used **once**. Choose **Ne
 
 If the active chat, preset, model catalog, or waiting request changes before an action is applied, the action is rejected. Open **Usage**, refresh, check the active chat, and try again. New unsaved drafts and ambiguous composers are not remote targets.
 
-#### Choose a model and turn the effort dial
+#### Choose a model and slide the effort control
 
-Open **Model & effort** in the control strip. The model selector and effort levels come from the active Codex composer's available catalog; they are not a separate hard-coded model list. Choosing a model applies it with a supported effort. Drag around the dial or use the slider to preview the effort, then release to apply. The slider also supports keyboard input. The change is confirmed by the Mac before the deck shows success.
+Open **Model & effort** in the control strip. The model selector and effort levels come from the active Codex composer's available catalog; they are not a separate hard-coded model list. Choosing a model applies it with a supported effort. Drag the horizontal slider left or right, like a volume control. The label previews the supported effort level; release to apply. Arrow keys move one level, and Home/End move to the minimum/maximum. The change is confirmed by the Mac before the deck shows success.
 
 This changes the current chat, not `presets.json`. To make a choice one of the five permanent keys, use **Model Presets → Edit Presets…** on the Mac as described below.
 
@@ -301,6 +301,7 @@ A user confirmed **working direct switching in 0.3.1 with Codex 26.928.31416** o
 Version 0.4.0 adds five presets and migration; 0.5.0 adds Codex startup at login and a simpler menu, retaining that switching path.
 Version 0.6.0 adds the opt-in Web Deck and incremental usage reads. Its HTTP server, browser UI, and model bridge were checked with isolated fixtures; actual phone-to-Codex switching was not agent-tested.
 Version 0.7.0 added six tactile keys and landscape/fullscreen support. Version **0.8.0** adds always-enabled bundled click audio, a percentage-only ring, the live model/effort dial, Mac dictation, and scoped pending approvals/questions. Version **0.8.1** gives the deck square white keycaps, recessed faces, a cool gray board, and matching light dialogs. Its layout and controls were checked in an offline browser from 320px portrait to 1120px desktop.
+Version **0.8.2** replaces the rotary dial with a horizontal volume-style effort slider. Drag/release, touch, keyboard input, and five viewport sizes were checked in an offline browser.
 The 0.8.0 interface was checked in a real browser with isolated fixture data, and the integration was reviewed against static Codex source. Live Codex actions, native microphone capture, and physical-phone sound/vibration were not validated for this release. Fixture checks establish UI and contract behavior, not guaranteed compatibility with a running Codex build.
 This does not establish Ultra availability for every account or coverage of every window/composer state.
 The integration uses internal structure and may need repair after Codex updates.

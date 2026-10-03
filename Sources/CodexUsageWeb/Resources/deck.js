@@ -323,7 +323,7 @@
     let keys = [];
     let catalogSignature = "";
     let requestSignature = "";
-    let dialDragging = false;
+    let effortDragging = false;
     let lastEffort = "";
     const modelSelect = byID("model-select");
     const effortRange = byID("effort-range");
@@ -337,22 +337,22 @@
     };
     const selectedModel = () => controller.state.snapshot?.models?.find(model => model.id === modelSelect.value);
     const selectedEffort = () => selectedModel()?.efforts[Number(effortRange.value)];
-    const updateDial = () => {
+    const updateEffort = () => {
       const efforts = selectedModel()?.efforts || [];
       const value = selectedEffort();
       byID("effort-value").textContent = effortLabels[value] || value || "—";
       effortRange.setAttribute("aria-valuetext", effortLabels[value] || value || "Unavailable");
       byID("effort-min").textContent = effortLabels[efforts[0]] || efforts[0] || "";
       byID("effort-max").textContent = effortLabels[efforts.at(-1)] || efforts.at(-1) || "";
-      const angle = efforts.length > 1 ? -135 + 270 * Number(effortRange.value) / (efforts.length - 1) : 0;
-      byID("dial-indicator").setAttribute("transform", `rotate(${angle} 80 80)`);
+      const percent = efforts.length > 1 ? 100 * Number(effortRange.value) / (efforts.length - 1) : 0;
+      effortRange.style.setProperty("--effort-fill", `${percent}%`);
     };
     const configureEffort = preferred => {
       const efforts = selectedModel()?.efforts || [];
       effortRange.max = String(Math.max(0, efforts.length - 1));
       effortRange.value = String(Math.max(0, efforts.indexOf(efforts.includes(preferred) ? preferred : efforts.includes("high") ? "high" : efforts[0])));
       lastEffort = selectedEffort();
-      updateDial();
+      updateEffort();
     };
     const applyModel = () => {
       const model = selectedModel();
@@ -469,7 +469,7 @@
         catalogSignature = modelSignature;
         modelSelect.replaceChildren(...models.map(model => { const option = element("option", "", model.name || modelLabel(model.id)); option.value = model.id; return option; }));
       }
-      if (!busy && !dialDragging) {
+      if (!busy && !effortDragging) {
         const model = models.find(model => modelIdentity(model.id) === modelIdentity(snapshot?.selection?.model));
         if (model) modelSelect.value = model.id;
         configureEffort(snapshot?.selection?.effort);
@@ -480,7 +480,7 @@
       byID("open-model").title = byID("model-control-label").textContent;
       modelSelect.disabled = !controller.canApply() || !models.length;
       effortRange.disabled = modelSelect.disabled || (selectedModel()?.efforts.length || 0) < 2;
-      byID("model-status").textContent = busy ? "Applying…" : feedback?.tone === "error" ? feedback.message : "Drag the dial or slider. Changes apply when you release.";
+      byID("model-status").textContent = busy ? "Applying…" : feedback?.tone === "error" ? feedback.message : "Drag to adjust. Release to apply.";
       const dictation = snapshot?.dictation;
       byID("dictation").disabled = !controller.canApply() || !dictation?.available || (dictation.recording && !dictation.owned);
       byID("dictation").setAttribute("aria-pressed", phase === "offline" ? "mixed" : String(dictation?.recording === true));
@@ -551,32 +551,12 @@
     modelSelect.addEventListener("change", () => { tactile.play(); configureEffort(controller.state.snapshot?.selection?.effort); applyModel(); });
     effortRange.addEventListener("input", () => {
       if (selectedEffort() !== lastEffort) { tactile.play(); lastEffort = selectedEffort(); }
-      updateDial();
+      updateEffort();
     });
-    effortRange.addEventListener("pointerdown", () => { dialDragging = true; });
-    effortRange.addEventListener("pointerup", () => { dialDragging = false; });
-    effortRange.addEventListener("change", () => { dialDragging = false; applyModel(); });
-    effortRange.addEventListener("pointercancel", () => { dialDragging = false; render(controller.state); });
-    const dial = byID("effort-dial");
-    const turnDial = event => {
-      const rect = dial.getBoundingClientRect();
-      const angle = Math.atan2(event.clientX - rect.left - rect.width / 2, -(event.clientY - rect.top - rect.height / 2)) * 180 / Math.PI;
-      const count = selectedModel()?.efforts.length || 0;
-      const value = Math.round((Math.max(-135, Math.min(135, angle)) + 135) / 270 * Math.max(0, count - 1));
-      effortRange.value = String(value);
-      if (selectedEffort() !== lastEffort) { tactile.play(); lastEffort = selectedEffort(); }
-      updateDial();
-    };
-    dial.addEventListener("pointerdown", event => {
-      if (effortRange.disabled) return;
-      event.preventDefault(); dialDragging = true; dial.setPointerCapture(event.pointerId); turnDial(event);
-    });
-    dial.addEventListener("pointermove", event => { if (dialDragging && dial.hasPointerCapture(event.pointerId)) turnDial(event); });
-    dial.addEventListener("pointerup", event => {
-      if (!dial.hasPointerCapture(event.pointerId)) return;
-      turnDial(event); dialDragging = false; dial.releasePointerCapture(event.pointerId); applyModel();
-    });
-    dial.addEventListener("pointercancel", () => { dialDragging = false; render(controller.state); });
+    effortRange.addEventListener("pointerdown", () => { effortDragging = true; });
+    effortRange.addEventListener("pointerup", () => { effortDragging = false; });
+    effortRange.addEventListener("change", () => { effortDragging = false; applyModel(); });
+    effortRange.addEventListener("pointercancel", () => { effortDragging = false; render(controller.state); });
     byID("fullscreen").addEventListener("click", async () => {
       const help = byID("fullscreen-help");
       if (!document.fullscreenEnabled) {

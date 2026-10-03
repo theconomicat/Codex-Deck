@@ -357,7 +357,7 @@
   ],
   "narrative": {
     "northStar": "White physical keypad",
-    "overview": "The user's white Codex Micro photo sets the material direction: pale square keycaps, shallow dished faces, softly beveled edges, and visible key thickness on a cool gray board. Charcoal labels and icons stay clear against the light surfaces. Depth communicates pressable controls without adding branding or a persistent header.\n\nScope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.8.1 web surface; its stylesheet remains the implementation source.",
+    "overview": "The user's white Codex Micro photo sets the material direction: pale square keycaps, shallow dished faces, softly beveled edges, and visible key thickness on a cool gray board. Charcoal labels and icons stay clear against the light surfaces. Depth communicates pressable controls without adding branding or a persistent header.\n\nScope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.8.2 web surface; its stylesheet remains the implementation source.",
     "keyCharacteristics": [
       "Square white keys with recessed circular faces.",
       "Cool gray framing and structural shadows.",

@@ -1,4 +1,4 @@
-# Micro-style controls in Web Deck 0.8.0
+# Micro-style controls in Web Deck
 
 Web Deck keeps the five preset keys and adds a compact control strip for model/effort, Mac dictation, and the active chat’s waiting requests. It runs in the phone browser on the same private Wi-Fi as Codex-Usage. It does not require a Codex Micro or Stream Deck device.
 
@@ -10,7 +10,7 @@ For installation, pairing, and JSON preset editing, use the [English README](../
 | --- | --- | --- |
 | Five model keys | Tap a key; wait for the confirmed selection. | Applies the corresponding `presets.json` model and effort to the active saved chat. |
 | Usage | Read the percentage in the ring; tap for details, refresh, fullscreen, or disconnect. | Remaining quota, preferring the weekly window. Missing/expired/offline data is `—`. |
-| Model & effort | Select a model. Turn the dial or drag the slider, then release to apply effort. | Uses the active composer’s available catalog and each model’s supported levels. Does not edit saved presets. |
+| Model & effort | Select a model. Drag the horizontal slider, then release to apply effort. | Uses the active composer’s available catalog and each model’s supported levels. Does not edit saved presets. |
 | Mac mic / Stop mic | Start dictation; stop when finished. | Uses the Mac microphone and inserts the transcript into the Mac composer without sending. |
 | Requests | Review the displayed chat and complete request, then respond. | Only supported pending requests for the active saved chat. |
 
@@ -20,7 +20,7 @@ Click feedback is always enabled. A bundled audio clip starts from a user gestur
 
 ## Model selection and effort
 
-The deck reads the visible composer’s model options instead of assuming that every account has the same models. Unavailable model choices and unsupported effort levels are rejected. Selecting a model applies it with a supported effort; turning the dial or dragging the slider previews a level and applies it on release. The Mac verifies the final model and effort before reporting success.
+The deck reads the visible composer’s model options instead of assuming that every account has the same models. Unavailable model choices and unsupported effort levels are rejected. Selecting a model applies it with a supported effort; dragging the horizontal slider previews a level and applies it on release. The Mac verifies the final model and effort before reporting success.
 
 These controls change subsequent turns of the current chat. They do not restart a running response, send a prompt, or rewrite the five configured presets. Use **Model Presets → Edit Presets…** on the Mac to save a recurring combination.
 

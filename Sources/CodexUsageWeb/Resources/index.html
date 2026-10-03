@@ -52,14 +52,12 @@
     <div class="dialog-heading"><h2 id="model-title">Model & effort</h2><button type="button" class="dialog-close" data-close="model-controls" aria-label="Close model controls">×</button></div>
     <label class="field-label" for="model-select">Model</label>
     <select id="model-select"></select>
-    <div id="effort-dial" class="effort-dial" aria-hidden="true">
-      <svg viewBox="0 0 160 160"><defs><linearGradient id="dial-material" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#d4dbdd"/></linearGradient></defs><path class="dial-track" d="M30 130a70 70 0 1 1 100 0"/><circle class="dial-face" cx="80" cy="80" r="58"/><g id="dial-indicator"><path d="M80 34v12"/></g></svg>
-      <span id="effort-value">—</span>
+    <div class="effort-control">
+      <div class="effort-heading"><label for="effort-range">Reasoning effort</label><output id="effort-value" for="effort-range">—</output></div>
+      <input id="effort-range" type="range" min="0" max="0" step="1" value="0" disabled>
+      <div class="effort-bounds" aria-hidden="true"><span id="effort-min"></span><span id="effort-max"></span></div>
     </div>
-    <label class="sr-only" for="effort-range">Reasoning effort</label>
-    <input id="effort-range" type="range" min="0" max="0" step="1" value="0" disabled>
-    <div class="effort-bounds" aria-hidden="true"><span id="effort-min"></span><span id="effort-max"></span></div>
-    <p id="model-status" class="secondary" role="status">Choose a model, then drag or turn the dial.</p>
+    <p id="model-status" class="secondary" role="status">Drag to adjust. Release to apply.</p>
   </dialog>
   <dialog id="requests" aria-labelledby="requests-title">
     <div class="dialog-heading"><h2 id="requests-title">Codex is waiting</h2><button type="button" class="dialog-close" data-close="requests" aria-label="Close requests">×</button></div>

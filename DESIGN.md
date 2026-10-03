@@ -19,6 +19,8 @@ colors:
   focus: "#346856"
   field-border: "#96a7ae"
   ring-track: "#bbc7c8"
+  slider-track: "#cbd5d8"
+  slider-thumb-border: "#98a9af"
 typography:
   body:
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
@@ -45,6 +47,7 @@ typography:
     fontSize: ".8125rem"
     lineHeight: 1.5
 rounded:
+  slider-track: "6px"
   field: "8px"
   control: "10px"
   dock: "14px"
@@ -91,7 +94,7 @@ components:
 
 The user's white Codex Micro photo sets the material direction: pale square keycaps, shallow dished faces, softly beveled edges, and visible key thickness on a cool gray board. Charcoal labels and icons stay clear against the light surfaces. Depth communicates pressable controls without adding branding or a persistent header.
 
-Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.8.1 web surface; its stylesheet remains the implementation source.
+Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.8.2 web surface; its stylesheet remains the implementation source.
 
 **Key Characteristics:**
 - Square white keys with recessed circular faces.
@@ -115,7 +118,7 @@ The dock is 52px high; landscape at 440px height or less uses a 44px dock, 14px 
 
 ## Elevation & Depth
 
-Use gradients and structural shadows to distinguish the board, raised key edges, and circular recesses. Keys have two gray lower edges and a soft grounded shadow; the pale highlight belongs on the upper edge. The model dial shares this white and gray material. Press reduces the shadow and, for pointer input, moves the key down 4px over 100ms. Keyboard input and reduced motion avoid movement. Exact shadows and motion are recorded in `.impeccable/design.json`.
+Use gradients and structural shadows to distinguish the board, raised key edges, and circular recesses. Keys have two gray lower edges and a soft grounded shadow; the pale highlight belongs on the upper edge. The effort slider shares this material: a recessed 12px track and a raised white 34px thumb within a 52px touch area. The dark green fill and effort label follow the drag without animation. Press reduces the shadow and, for pointer input, moves the key down 4px over 100ms. Keyboard input and reduced motion avoid movement. Exact shadows and motion are recorded in `.impeccable/design.json`.
 
 ## Shapes
 
@@ -125,7 +128,7 @@ Keys retain a square silhouette with softly rounded corners. Each dished face is
 
 - **Preset keys:** model above effort, small key number and indicator at the top. Confirmed selection changes the recess, label, border, and LED; pending uses amber. Preserve selected, busy, disabled, and focus states. Never show success before host confirmation.
 - **Usage key:** a circular track with the percentage only; no “remaining” caption. Unknown, expired, or offline data uses an em dash. Opens the native dialog for the active chat, usage details, fullscreen, refresh, and disconnect.
-- **Model controls:** a light physical dial, native model select, and keyboard-accessible range input. Pointer movement previews and release commits; choosing a model applies a supported effort.
+- **Model controls:** a native model select and a horizontal, volume-style range input with a visible effort label. Keep native touch and keyboard semantics. Pointer movement previews and release commits; choosing a model applies a supported effort.
 - **Dock and requests:** Model, Mac mic, and a Requests control only when supported requests are waiting. Recording has an explicit red state. Request dialogs show relevant options and text fields with clear Allow once/Deny treatments.
 - **Feedback:** visible focus outline, dismissible screen-reader-announced notices, short bundled click audio and supported-device vibration after gestures. Sound has no page toggle; hardware/browser mute remains authoritative. No idle animation or continuous audio.
 

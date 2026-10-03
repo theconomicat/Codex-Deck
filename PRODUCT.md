@@ -10,7 +10,7 @@ This record covers the mobile web remote added to the existing native macOS menu
 
 ## Users and purpose
 
-Codex users control the Mac’s active saved chat from a phone or tablet on the same Wi-Fi. The remote combines the five model presets with a live model/effort dial, Mac dictation, and scoped responses to pending approvals and user-input questions. The phone is a compact control surface rather than a general chat client.
+Codex users control the Mac’s active saved chat from a phone or tablet on the same Wi-Fi. The remote combines the five model presets with a live model selector and horizontal effort slider, Mac dictation, and scoped responses to pending approvals and user-input questions. The phone is a compact control surface rather than a general chat client.
 
 ## Operating context
 
@@ -24,7 +24,7 @@ The native companion remains the host and source of presets and usage. A browser
 - Pairing, connection loss, changed targets, and pending actions need explicit states.
 - Show only the active chat’s supported pending questions and full approval scope; allow once/deny and request-specific answers only. Unsupported or oversized requests stay on the Mac.
 - Use bundled click audio on gestures without a sound toggle. Device/browser mute cannot be overridden.
-- Dial/slider movement previews effort and commits on release; show only host-reported model capabilities.
+- Horizontal slider movement previews effort and commits on release; show only host-reported model capabilities.
 - Browser fixtures establish layout and contract behavior, not live Codex or physical-phone compatibility.
 - Pause polling while the page is hidden; foreground polling is no more frequent than once every five seconds and never overlaps another request.
 
