@@ -160,7 +160,7 @@ public final class DeckServer {
             ("/click.wav", "click.wav", "audio/wav")
         ] {
             guard let url = bundle.url(forResource: filename, withExtension: nil, subdirectory: "Resources") else {
-                throw DeckHTTPError(status: 503, message: "The Web Deck resource is missing. Reinstall Codex-Usage.")
+                throw DeckHTTPError(status: 503, message: "The Web Deck resource is missing. Reinstall Codex Deck.")
             }
             assets[route] = (try Data(contentsOf: url), type)
         }

@@ -7,7 +7,8 @@
   <meta name="theme-color" content="#e3e7e8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="referrer" content="no-referrer">
-  <title>Codex-Usage Web Deck</title>
+  <title>Codex Deck</title>
+  <meta name="apple-mobile-web-app-title" content="Codex Deck">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/deck.css">
   <script src="/deck.js" defer></script>
@@ -15,6 +16,7 @@
 <body>
   <main class="remote" aria-label="Codex model deck">
     <div class="deck-surface">
+    <div id="key-surface" class="key-surface" data-view="presets">
     <div id="presets" class="deck-grid" aria-label="Model presets and usage" aria-busy="true">
       <button id="usage-key" type="button" class="deck-key usage-key" aria-label="Usage unavailable. Open deck controls" aria-haspopup="dialog">
         <span class="key-top"><span>Usage</span><span class="settings-icon" aria-hidden="true">···</span></span>
@@ -24,15 +26,17 @@
         </span>
       </button>
     </div>
+    <div id="model-catalog" class="model-catalog" aria-label="Models" hidden></div>
+    </div>
     <div id="effort-control" class="effort-control">
       <div class="effort-heading"><label for="effort-range"><span id="effort-model">Model</span><span class="sr-only"> reasoning effort</span></label><output id="effort-value" for="effort-range">—</output></div>
       <input id="effort-range" type="range" min="0" max="0" step="1" value="0" disabled>
       <div class="effort-bounds" aria-hidden="true"><span id="effort-min"></span><span id="effort-max"></span></div>
     </div>
     <nav id="micro-dock" class="micro-dock" aria-label="Codex controls">
-      <button id="open-model" type="button" class="dock-button model-control" aria-haspopup="dialog" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16m12-16v16M2 9h8m4 6h8"/><circle cx="6" cy="9" r="2"/><circle cx="18" cy="15" r="2"/></svg>
-        <span id="model-control-label">Choose model</span><span class="compact-model-label" aria-hidden="true">Model</span>
+      <button id="open-model" type="button" class="dock-button model-control" aria-controls="model-catalog" aria-expanded="false" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span id="model-control-label">Models</span>
       </button>
       <button id="dictation" type="button" class="dock-button" aria-label="Start Mac dictation" aria-pressed="false" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>
@@ -45,7 +49,7 @@
     </div>
     <section id="pairing" class="pairing" aria-labelledby="pairing-title" hidden>
       <h1 id="pairing-title">Connect to your Mac</h1>
-      <p>Open Web Deck in the Codex-Usage menu on your Mac and scan a new pairing QR code.</p>
+      <p>Open Web Deck in the Codex Deck menu on your Mac and scan a new pairing QR code.</p>
       <p class="secondary">Keep both devices on the same Wi-Fi.</p>
       <button id="retry-pairing" type="button" class="control-button">Check connection</button>
     </section>
@@ -53,12 +57,6 @@
     <p id="feedback" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
     <noscript><p class="notice">Enable JavaScript to use the deck.</p></noscript>
   </main>
-  <dialog id="model-controls" aria-labelledby="model-title">
-    <div class="dialog-heading"><h2 id="model-title">Model</h2><button type="button" class="dialog-close" data-close="model-controls" aria-label="Close model controls">×</button></div>
-    <label class="field-label" for="model-select">Model</label>
-    <select id="model-select"></select>
-    <p id="model-status" class="secondary" role="status">Choose a model to apply it.</p>
-  </dialog>
   <dialog id="requests" aria-labelledby="requests-title">
     <div class="dialog-heading"><h2 id="requests-title">Codex is waiting</h2><button type="button" class="dialog-close" data-close="requests" aria-label="Close requests">×</button></div>
     <p id="request-target" class="secondary"></p>

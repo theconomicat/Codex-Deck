@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_NAME="Codex-Usage"
+APP_NAME="Codex Deck"
 EXEC_NAME="CodexUsage"
 BUILD_DIR="$ROOT_DIR/.build/release"
 APP_DIR="${CODEX_USAGE_OUTPUT_DIR:-$ROOT_DIR}/$APP_NAME.app"
@@ -28,17 +28,17 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
   <key>CFBundleIdentifier</key>
   <string>dev.codex-usage.app</string>
   <key>CFBundleName</key>
-  <string>Codex-Usage</string>
+  <string>Codex Deck</string>
   <key>CFBundleDisplayName</key>
-  <string>Codex-Usage</string>
+  <string>Codex Deck</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleIconFile</key>
   <string>AppIcon</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.8.3</string>
+  <string>0.9.0</string>
   <key>CFBundleVersion</key>
-  <string>21</string>
+  <string>22</string>
   <key>LSMinimumSystemVersion</key>
   <string>13.0</string>
   <key>NSLocalNetworkUsageDescription</key>

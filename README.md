@@ -1,21 +1,23 @@
-# Codex-Usage
+# Codex Deck
+
+An open-source Codex controller for your phone or tablet, with a macOS menu bar companion. Previously named Codex-Usage.
 
 [한국어 사용 설명서](README.ko.md)
 
 A macOS menu bar companion for **remaining Codex quota**, **model preset shortcuts**, and a **phone Web Deck**.
-Change the current chat's model and reasoning effort together without opening the model picker. Use five preset keys or a model selector and horizontal effort slider in your phone's browser on the same Wi-Fi. Start Mac dictation, review a waiting permission request, or answer Codex's current question from the same deck. No Stream Deck hardware is required.
+Change the current chat's model and reasoning effort together without opening the model picker. Use five preset keys or an inline model catalog and horizontal effort slider in your phone's browser on the same Wi-Fi. Start Mac dictation, review a waiting permission request, or answer Codex's current question from the same deck. No Stream Deck hardware is required.
 
 ## Preview
 
 ### App menu
 
-<img src="docs/app-menu.png" alt="Codex-Usage menu grouping five shortcuts with separate preset settings and automatic launch options" width="560" />
+<img src="docs/app-menu.png" alt="Codex Deck menu grouping five shortcuts with separate preset settings and automatic launch options" width="560" />
 
-User-provided screenshot of the running 0.5.0 app. All five shortcuts form one group; preset editing lives in a separate submenu. A single weekly quota is labeled `Usage` instead of `1w`.
+User-provided screenshot of the running 0.5.0 app, under its previous Codex-Usage name. All five shortcuts form one group; preset editing lives in a separate submenu. A single weekly quota is labeled `Usage` instead of `1w`.
 
 ### Menu bar usage
 
-<img src="docs/menu-bar-preview.png" alt="Codex-Usage menu bar showing 94 percent remaining in a single green quota ring" width="185" />
+<img src="docs/menu-bar-preview.png" alt="Codex Deck menu bar showing 94 percent remaining in a single green quota ring" width="185" />
 
 User-provided screenshot of a weekly-only account: the green ring shows 94% remaining. The adjacent Codex icon belongs to Codex itself. Values update from local Codex usage events.
 
@@ -25,11 +27,13 @@ User-provided screenshot of a weekly-only account: the green ring shows 94% rema
 
 <img src="docs/web-deck-mobile.png" alt="The same six-key deck arranged in two columns for portrait use" width="260" />
 
+<img src="docs/web-deck-models.png" alt="Codex Deck showing model names and a Presets button to return" width="840" />
+
 <img src="docs/web-deck-slider.png" alt="Main deck after changing Astra Ultra to Astra High with the always-visible effort slider" width="844" />
 
 <img src="docs/web-deck-questions.png" alt="A pending question with selectable answers and a request-specific text field" width="500" />
 
-Version 0.8.3, rendered with synthetic offline fixture data. These landscape, portrait, slider, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
+Version 0.9.0, rendered with synthetic offline fixture data. These landscape, portrait, model catalog, slider, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
 
 ---
 
@@ -52,11 +56,11 @@ Your Codex account must offer the selected model and effort. Unsupported choices
 
 ### Install the app
 
-1. Download `Codex-Usage-macos.zip` from the desired [release](https://github.com/theconomicat/Codex-Usage/releases).
+1. Download `Codex-Deck-macos.zip` from the desired [release](https://github.com/theconomicat/Codex-Usage/releases).
    **Model/effort controls, Mac mic, and pending-request controls require 0.8.0 or newer**. Web Deck first shipped in 0.6.0; the five keyboard presets require 0.4.0 or newer. If that version is not published yet, build from source below.
-2. Unzip and move `Codex-Usage.app` into **`/Applications`**.
-3. Quit an older running copy with **Quit Codex-Usage** before opening the new app.
-4. Click the Codex-Usage icon in the macOS menu bar. It is a menu bar app; a persistent Dock window is not expected.
+2. Unzip and move `Codex Deck.app` into **`/Applications`**.
+3. Quit an older running copy with **Quit Codex Deck** before opening the new app.
+4. Click the Codex Deck icon in the macOS menu bar. It is a menu bar app; a persistent Dock window is not expected.
 
 Requires macOS 13+ and an installed, signed-in Codex desktop app. You can use the quota meter without enabling direct model switching.
 Local builds are ad-hoc signed and not Apple-notarized. If macOS blocks launch, verify the source, then check the app-specific opening option in System Settings → Privacy & Security.
@@ -72,7 +76,7 @@ cd Codex-Usage
 ./Scripts/package_app.sh
 ```
 
-Move the generated `Codex-Usage.app` to `/Applications` and launch it. Quit the old copy before replacing an existing installation.
+Move the generated `Codex Deck.app` to `/Applications` and launch it. Quit the old copy before replacing an existing installation.
 
 ## 2. Connect direct switching once
 
@@ -113,11 +117,11 @@ Turn off **Open Codex Automatically** to start only the usage companion. Turning
 ### Use your phone as a Web Deck
 
 1. Complete **Enable Direct Switching…** on the Mac first. Keep one main Codex window open on a **saved chat**, with its composer visible. The Web Deck can switch models while another Mac app is in front; keyboard shortcuts still require Codex in front.
-2. Connect the Mac and phone to the **same trusted private Wi-Fi**. Keep the Mac awake and Codex-Usage running.
+2. Connect the Mac and phone to the **same trusted private Wi-Fi**. Keep the Mac awake and Codex Deck running.
 3. Choose **Web Deck… → Start Web Deck** in the Mac menu. This starts a small local HTTP server; it is off by default and does not start automatically at login.
 4. Scan the QR code with your phone, or choose **Copy Pairing Link** and open that complete link in the phone's browser. The bare IP address opens the page but does not pair a device.
 5. Tap **Usage** to review the active chat, close the controls, then tap a model key. The page uses the first five configured presets in slot order from the same `presets.json` as the keyboard shortcuts. A key turns green after the host confirms the selection.
-6. Rotate the phone for **3 × 2 landscape**; portrait uses **2 × 3**. Five square model keys and a usage tile form a centered white-and-gray physical keypad, sized to fit the screen with the control strip. The effort slider stays directly below the keys. **Model**, **Mac mic**, and waiting **Requests** sit beside the keys in landscape or below the slider in portrait, without a page header.
+6. The preset view uses **3 × 2 landscape** or **2 × 3 portrait**. The model catalog uses four columns in landscape and two in portrait. Five square model keys and a usage tile form a centered white-and-gray physical keypad, sized to fit the screen with the control strip. The effort slider stays directly below the keys. **Models / Presets**, **Mac mic**, and waiting **Requests** sit beside the keys in landscape or below the slider in portrait, without a page header.
 7. Tap **Usage → Enter full screen** in supported browsers. On iPhone, use Safari's **Share → Add to Home Screen** and open the saved deck; pair again if that standalone browser has a separate session.
 
 White keys have a recessed face, gray raised edge, short press effect, and an always-enabled click from a bundled audio file; there is no sound toggle. A supported-device vibration accompanies the press. Playback starts from your tap and does not run continuously. The page cannot override device volume, hardware mute, or browser audio restrictions. If you hear nothing, check the media volume and browser sound settings. Reduced-motion preferences disable key movement; unsupported sound, vibration, or fullscreen does not block the controls.
@@ -134,7 +138,9 @@ If the active chat, preset, model catalog, or waiting request changes before an 
 
 Use the **slider directly on the deck** to change the current model's effort. Tap **1 · Astra Ultra**, then slide to **High** and release: the chat becomes **Astra High**, without opening a dialog or changing the model. The bar follows every confirmed preset selection and exposes only that model's supported levels. Arrow keys move one level, and Home/End move to the minimum/maximum. The Mac confirms the result before the deck shows success.
 
-To select a model outside the five presets, open **Model** in the control strip. Its choices come from the active Codex composer. Choosing a model applies it with a supported effort, then the main slider follows the new model.
+Tap **Models** to replace the preset keys with the active Codex composer’s model catalog. These keys show model names only. Tap a model to apply it; the current effort is preserved when supported, otherwise High is used (or the model’s first supported level). The slider follows the confirmed model.
+
+The same button now reads **Presets**. Tap it, or press Escape, to return to your five saved combinations and usage ring. Returning changes only the view; it does not restore an earlier model or edit `presets.json`. There are no sets or pages to configure. The effort slider and Mac mic remain available in both views. Longer model catalogs scroll inside the deck.
 
 This changes the current chat, not `presets.json`. To make a choice one of the five permanent keys, use **Model Presets → Edit Presets…** on the Mac as described below.
 
@@ -155,7 +161,7 @@ The **Requests** button appears when a supported request is waiting in the activ
 
 Already answered or changed requests are rejected rather than applied to a different request. Plan implementation prompts, generic option pickers, requests too large to show completely, and unrecognized structures must be handled in Codex on the Mac. The deck does not expose unrelated chats, arbitrary message sending, or shell/code execution controls. See the [Micro-style controls guide](docs/codex-micro.md) for scope and research notes.
 
-The phone connection is **HTTP on the local network**, not an Internet service. Pairing does not encrypt traffic: use a network you trust, do not forward the port, and read [Security](SECURITY.md). If macOS asks, allow Codex-Usage's local-network access or incoming connection. Guest Wi-Fi/client isolation can prevent devices from reaching each other. Web Deck needs a private IPv4 address (`10.x.x.x`, `172.16–31.x.x`, or `192.168.x.x`); a displayed `127.0.0.1` address works only on the Mac. After changing networks, stop and start Web Deck to obtain a new address and pairing link.
+The phone connection is **HTTP on the local network**, not an Internet service. Pairing does not encrypt traffic: use a network you trust, do not forward the port, and read [Security](SECURITY.md). If macOS asks, allow Codex Deck's local-network access or incoming connection. Guest Wi-Fi/client isolation can prevent devices from reaching each other. Web Deck needs a private IPv4 address (`10.x.x.x`, `172.16–31.x.x`, or `192.168.x.x`); a displayed `127.0.0.1` address works only on the Mac. After changing networks, stop and start Web Deck to obtain a new address and pairing link.
 
 ### Menu reference
 
@@ -169,7 +175,7 @@ The phone connection is **HTTP on the local network**, not an Internet service. 
 | Web Deck… | Start or stop phone access, show a pairing QR/link, and disconnect devices. |
 | Launch at Login | Toggle companion startup at login. |
 | Open Codex Automatically | Open a closed Codex app with direct switching when the companion starts; requires initial setup. |
-| Quit Codex-Usage | Quit the companion. To close debugging too, quit Codex and relaunch it normally. |
+| Quit Codex Deck | Quit the companion. To close debugging too, quit Codex and relaunch it normally. |
 
 ## 4. Customize your models
 
@@ -238,7 +244,7 @@ JSON cannot contain comments or trailing commas. The Command–Control modifier 
 Validate syntax and slots without changing a model:
 
 ```bash
-/Applications/Codex-Usage.app/Contents/MacOS/CodexUsage \
+"/Applications/Codex Deck.app/Contents/MacOS/CodexUsage" \
   --validate-presets "$HOME/Library/Application Support/Codex-Usage/presets.json"
 ```
 
@@ -290,7 +296,7 @@ Remove the added `null` entries to restore defaults. The companion never install
 
 ## Update or uninstall
 
-**Update:** choose Quit Codex-Usage, replace the app in `/Applications`, then launch the new copy.
+**Update:** choose Quit Codex Deck, replace the app in `/Applications`, then launch the new copy. When upgrading from Codex-Usage, quit the old app and move `/Applications/Codex-Usage.app` to the Trash before launching `Codex Deck.app`. The bundle identifier and existing `~/Library/Application Support/Codex-Usage` settings are retained. Check Launch at Login after moving to the renamed app.
 JSON lives outside the app and is preserved. Reconnect direct switching if Codex also updated or restarted. Web Deck stops and paired phones must pair again after you start the new app's deck.
 
 **Uninstall:** turn off Launch at Login and Open Codex Automatically, quit the companion, and move its app to Trash.
@@ -304,6 +310,7 @@ Version 0.4.0 adds five presets and migration; 0.5.0 adds Codex startup at login
 Version 0.6.0 adds the opt-in Web Deck and incremental usage reads. Its HTTP server, browser UI, and model bridge were checked with isolated fixtures; actual phone-to-Codex switching was not agent-tested.
 Version 0.7.0 added six tactile keys and landscape/fullscreen support. Version **0.8.0** adds always-enabled bundled click audio, a percentage-only ring, the live model/effort dial, Mac dictation, and scoped pending approvals/questions. Version **0.8.1** gives the deck square white keycaps, recessed faces, a cool gray board, and matching light dialogs. Its layout and controls were checked in an offline browser from 320px portrait to 1120px desktop.
 Version **0.8.2** replaces the rotary dial with a horizontal volume-style effort slider. Drag/release, touch, keyboard input, and five viewport sizes were checked in an offline browser.
+Version **0.9.0** renames the app to Codex Deck and adds an inline **Models / Presets** view switch. The model keys show names only; selecting one keeps a supported effort. Browser fixtures verify view switching, model selection, slider behavior, and disconnected states.
 Version **0.8.3** puts the effort slider directly on the deck. Selecting a preset synchronizes the bar; moving it preserves the active model and changes only its effort. The Astra Ultra → High and Sol Extra High → High flows were verified with offline fixtures.
 The 0.8.0 interface was checked in a real browser with isolated fixture data, and the integration was reviewed against static Codex source. Live Codex actions, native microphone capture, and physical-phone sound/vibration were not validated for this release. Fixture checks establish UI and contract behavior, not guaranteed compatibility with a running Codex build.
 This does not establish Ultra availability for every account or coverage of every window/composer state.
@@ -319,9 +326,9 @@ swift run CodexUsage --print
 swift run CodexUsage --default-presets
 swift run CodexUsage --check-direct-resources
 swift run CodexUsage --check-web-resources
-/Applications/Codex-Usage.app/Contents/MacOS/CodexUsage --startup-status
+"/Applications/Codex Deck.app/Contents/MacOS/CodexUsage" --startup-status
 ./Scripts/package_app.sh
-ditto -c -k --norsrc --keepParent Codex-Usage.app Codex-Usage-macos.zip
+ditto -c -k --norsrc --keepParent "Codex Deck.app" Codex-Deck-macos.zip
 ```
 
 `--startup-status` reports the installed app’s login, Codex auto-launch, and initial connection settings.

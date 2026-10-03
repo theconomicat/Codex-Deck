@@ -320,3 +320,10 @@ test('sound starts media synchronously on every press regardless of an old sound
   assert.deepEqual(calls.at(-1), ['pause']);
   assert.equal(feedback.toggle, undefined);
 });
+
+const { modelEffort } = require('../../Sources/CodexUsageWeb/Resources/deck.js');
+test('model-name keys preserve a supported effort and choose a supported fallback', () => {
+  assert.equal(modelEffort({ efforts: ['low', 'high', 'xhigh', 'ultra'] }, 'ultra'), 'ultra');
+  assert.equal(modelEffort({ efforts: ['medium', 'high', 'xhigh'] }, 'ultra'), 'high');
+  assert.equal(modelEffort({ efforts: ['low', 'medium'] }, 'ultra'), 'low');
+});

@@ -96,7 +96,7 @@
         source: action ? "action" : "connection",
         message: error.status === 401 ? "This device is not paired. Open a fresh pairing link from your Mac."
           : error.status === 409 ? (error.message + " Refresh the deck and review the active chat before trying again.")
-          : error.message || (action ? "The result could not be confirmed. Check your Mac before retrying." : "Cannot reach your Mac. Keep Codex-Usage running and use the same Wi-Fi.")
+          : error.message || (action ? "The result could not be confirmed. Check your Mac before retrying." : "Cannot reach your Mac. Keep Codex Deck running and use the same Wi-Fi.")
       };
     }
 
@@ -312,6 +312,10 @@
     };
   }
 
+  function modelEffort(model, preferred) {
+    return model.efforts.includes(preferred) ? preferred : model.efforts.includes("high") ? "high" : model.efforts[0];
+  }
+
   function mount(document, controller) {
     const byID = id => document.getElementById(id);
     const grid = byID("presets");
@@ -325,9 +329,11 @@
     let requestSignature = "";
     let effortDragging = false;
     let lastEffort = "";
-    const modelSelect = byID("model-select");
+    const catalog = byID("model-catalog");
+    let modelKeys = [];
+    let showingModels = false;
+    let pendingModel = null;
     const effortRange = byID("effort-range");
-    const modelDialog = byID("model-controls");
     const requestsDialog = byID("requests");
     const element = (tag, className, text) => {
       const node = document.createElement(tag);
@@ -356,10 +362,17 @@
       lastEffort = selectedEffort();
       updateEffort();
     };
-    const applyModel = (model = activeModel(), effort = selectedEffort()) => {
+    const applyModel = async (model = activeModel(), effort = selectedEffort()) => {
       if (!model || !effort || !controller.canApply()) return;
       if (isPresetSelected(controller.state.snapshot?.selection, { model: model.id, effort })) return;
-      void controller.control({ type: "model", model: model.id, effort });
+      const focusedControl = document.activeElement;
+      pendingModel = model.id;
+      try { await controller.control({ type: "model", model: model.id, effort }); }
+      finally {
+        pendingModel = null; render(controller.state);
+        // Disabling an in-flight control drops its keyboard focus in Chromium.
+        if (document.documentElement.dataset.input === "keyboard" && document.activeElement === document.body && focusedControl?.isConnected && !focusedControl.disabled) focusedControl.focus();
+      }
     };
     const renderRequests = state => {
       const pending = state.snapshot?.pending || [];
@@ -454,7 +467,10 @@
       grid.hidden = pairing;
       byID("effort-control").hidden = pairing;
       byID("micro-dock").hidden = pairing;
-      if (pairing) for (const dialog of [controls, modelDialog, requestsDialog]) if (dialog.open) dialog.close();
+      if (pairing) {
+        showingModels = false;
+        for (const dialog of [controls, requestsDialog]) if (dialog.open) dialog.close();
+      }
       byID("logout").hidden = !controller.csrf;
       byID("logout").disabled = busy;
       byID("refresh").disabled = busy;
@@ -468,20 +484,39 @@
       const modelSignature = JSON.stringify(models);
       if (catalogSignature !== modelSignature) {
         catalogSignature = modelSignature;
-        modelSelect.replaceChildren(...models.map(model => { const option = element("option", "", model.name || modelLabel(model.id)); option.value = model.id; return option; }));
+        modelKeys = models.map(model => {
+          const button = element("button", "deck-key catalog-key");
+          button.type = "button";
+          button.dataset.model = model.id;
+          button.append(element("span", "catalog-name", model.name || modelLabel(model.id)));
+          button.addEventListener("click", () => {
+            const current = controller.state.snapshot?.models?.find(item => item.id === model.id);
+            if (current) void applyModel(current, modelEffort(current, controller.state.snapshot?.selection?.effort));
+          });
+          return { button, model };
+        });
+        catalog.replaceChildren(...modelKeys.map(key => key.button));
       }
       if (!busy && !effortDragging) {
-        const model = models.find(model => modelIdentity(model.id) === modelIdentity(snapshot?.selection?.model));
-        if (model) modelSelect.value = model.id;
         configureEffort(snapshot?.selection?.effort);
       }
-      byID("open-model").disabled = !controller.canApply() || !models.length;
-      byID("model-control-label").textContent = snapshot?.selection?.model ? `${modelLabel(snapshot.selection.model)} · ${effortLabels[snapshot.selection.effort] || snapshot.selection.effort}` : "Choose model";
-      byID("open-model").setAttribute("aria-label", `Choose model: ${byID("model-control-label").textContent}`);
-      byID("open-model").title = byID("model-control-label").textContent;
-      modelSelect.disabled = !controller.canApply() || !models.length;
-      effortRange.disabled = modelSelect.disabled || (activeModel()?.efforts.length || 0) < 2;
-      byID("model-status").textContent = busy ? "Applying…" : feedback?.tone === "error" ? feedback.message : "Choose a model to apply it.";
+      byID("key-surface").dataset.view = showingModels ? "models" : "presets";
+      grid.inert = showingModels;
+      grid.setAttribute("aria-hidden", String(showingModels));
+      catalog.hidden = !showingModels;
+      byID("open-model").disabled = !showingModels && (!controller.canApply() || !models.length);
+      byID("model-control-label").textContent = showingModels ? "Presets" : "Models";
+      byID("open-model").setAttribute("aria-expanded", String(showingModels));
+      byID("open-model").setAttribute("aria-label", showingModels ? "Presets: return to saved model presets" : "Models: show available models");
+      byID("open-model").title = showingModels ? "Return to saved presets" : "Choose a model";
+      effortRange.disabled = !controller.canApply() || (activeModel()?.efforts.length || 0) < 2;
+      for (const { button, model } of modelKeys) {
+        const selected = phase === "ready" && modelIdentity(model.id) === modelIdentity(snapshot?.selection?.model);
+        button.disabled = !controller.canApply();
+        button.setAttribute("aria-pressed", String(selected));
+        button.setAttribute("aria-busy", String(busy && pendingModel === model.id));
+      }
+      catalog.setAttribute("aria-busy", String(phase === "loading" || busy));
       const dictation = snapshot?.dictation;
       byID("dictation").disabled = !controller.canApply() || !dictation?.available || (dictation.recording && !dictation.owned);
       byID("dictation").setAttribute("aria-pressed", phase === "offline" ? "mixed" : String(dictation?.recording === true));
@@ -546,17 +581,12 @@
     usageKey.addEventListener("click", () => controls.showModal());
     byID("close-controls").addEventListener("click", () => controls.close());
     for (const button of document.querySelectorAll("[data-close]")) button.addEventListener("click", () => byID(button.dataset.close).close());
-    byID("open-model").addEventListener("click", () => modelDialog.showModal());
+    byID("open-model").addEventListener("click", () => {
+      showingModels = !showingModels;
+      render(controller.state);
+    });
     byID("open-requests").addEventListener("click", () => requestsDialog.showModal());
     byID("dictation").addEventListener("click", () => void controller.control({ type: "dictation", recording: !controller.state.snapshot?.dictation?.recording }));
-    modelSelect.addEventListener("change", () => {
-      tactile.play();
-      const model = controller.state.snapshot?.models?.find(model => model.id === modelSelect.value);
-      if (!model) return;
-      const preferred = controller.state.snapshot?.selection?.effort;
-      const effort = model.efforts.includes(preferred) ? preferred : model.efforts.includes("high") ? "high" : model.efforts[0];
-      applyModel(model, effort);
-    });
     effortRange.addEventListener("input", () => {
       if (selectedEffort() !== lastEffort) { tactile.play(); lastEffort = selectedEffort(); }
       updateEffort();
@@ -590,7 +620,10 @@
       controller.visibilityChanged();
     });
     document.addEventListener("keydown", event => {
-      if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !grid.contains(event.target)) return;
+      if (event.key === "Escape" && showingModels && !document.querySelector("dialog[open]")) {
+        event.preventDefault(); showingModels = false; render(controller.state); byID("open-model").focus(); return;
+      }
+      if (showingModels || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !grid.contains(event.target)) return;
       const key = keys.find(item => String(item.preset.slot) === event.key);
       if (key && !key.button.disabled) { event.preventDefault(); key.button.click(); }
     });
@@ -598,7 +631,7 @@
   }
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { validControl, pressFeedback, DeckController, consumePairingToken, modelLabel, isPresetSelected, usagePercent, POLL_INTERVAL };
+    module.exports = { modelEffort, validControl, pressFeedback, DeckController, consumePairingToken, modelLabel, isPresetSelected, usagePercent, POLL_INTERVAL };
   } else {
     const token = consumePairingToken(window.location, window.history);
     let render = () => {};

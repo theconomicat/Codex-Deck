@@ -72,7 +72,7 @@ final class DeckRouter {
 
         sessions = sessions.filter { $0.value.expiresAt > now }
         guard let key = sessionKey(from: request), let session = sessions[key] else {
-            return .error(401, "Pair this device with Codex-Usage first.")
+            return .error(401, "Pair this device with Codex Deck first.")
         }
         if request.method == "POST" {
             guard let csrf = request.headers["x-deck-csrf"], Self.constantTimeEqual(csrf, session.csrf) else {

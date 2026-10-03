@@ -1,6 +1,6 @@
 # Micro-style controls in Web Deck
 
-Web Deck keeps the five preset keys and adds a compact control strip for model/effort, Mac dictation, and the active chat’s waiting requests. It runs in the phone browser on the same private Wi-Fi as Codex-Usage. It does not require a Codex Micro or Stream Deck device.
+Web Deck keeps the five preset keys and adds a compact control strip for model/effort, Mac dictation, and the active chat’s waiting requests. It runs in the phone browser on the same private Wi-Fi as Codex Deck. It does not require a Codex Micro or Stream Deck device.
 
 For installation, pairing, and JSON preset editing, use the [English README](../README.md#use-your-phone-as-a-web-deck) or [한국어 설명서](../README.ko.md#휴대폰을-web-deck으로-사용하기).
 
@@ -11,7 +11,7 @@ For installation, pairing, and JSON preset editing, use the [English README](../
 | Five model keys | Tap a key; wait for the confirmed selection. | Applies the corresponding `presets.json` model and effort to the active saved chat. |
 | Usage | Read the percentage in the ring; tap for details, refresh, fullscreen, or disconnect. | Remaining quota, preferring the weekly window. Missing/expired/offline data is `—`. |
 | Effort slider | Drag the bar directly on the deck, then release. | Keeps the current model, changing only its effort. For example: preset 1 Astra Ultra → slider High = Astra High. Saved presets stay unchanged. |
-| Model | Open the model selector and choose a model. | Uses the active composer’s available catalog; the deck slider follows the confirmed model. |
+| Models / Presets | Toggle between model-name keys and the five saved presets. Tap a model to apply it. | Keeps a supported current effort, falling back to High or the first supported level. Returning to Presets changes only the view. |
 | Mac mic / Stop mic | Start dictation; stop when finished. | Uses the Mac microphone and inserts the transcript into the Mac composer without sending. |
 | Requests | Review the displayed chat and complete request, then respond. | Only supported pending requests for the active saved chat. |
 
@@ -62,7 +62,7 @@ These open-source projects were reviewed for interaction and transport approache
 | [mpociot/codex-micro-stream-deck-emulator](https://github.com/mpociot/codex-micro-stream-deck-emulator/tree/7093bd48f0bcb953f623b40c727470e545b48df3) | Stream Deck device emulation and an injected HID shim. | MIT |
 | [dazer1234/codex-stream-deck](https://github.com/dazer1234/codex-stream-deck/tree/6d7d14b9c966de305617a43a7ac22c7034ac075e) | Stream Deck actions that route Micro events through a desktop bridge. | MIT |
 
-These are research references, not runtime dependencies. No code or proprietary hardware assets were copied from them. Codex-Usage extends its existing direct composer bridge, uses the native control/request callbacks, and checks the resulting state. It does not install a HID emulator, inject a `node-hid` shim, pretend hardware is connected, or override feature gates.
+These are research references, not runtime dependencies. No code or proprietary hardware assets were copied from them. Codex Deck extends its existing direct composer bridge, uses the native control/request callbacks, and checks the resulting state. It does not install a HID emulator, inject a `node-hid` shim, pretend hardware is connected, or override feature gates.
 
 The public app-server protocol is useful for understanding request shapes, but a separately launched server does not own the pending request in an existing Codex desktop chat. This version therefore uses the currently mounted desktop request’s callback. That is an internal integration, not a supported public remote-control API; Codex updates can change it.
 

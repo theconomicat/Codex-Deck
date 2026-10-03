@@ -10,7 +10,7 @@ if CommandLine.arguments.contains("--enable-launch-at-login") {
         if SMAppService.mainApp.status != .enabled { try SMAppService.mainApp.register() }
         guard SMAppService.mainApp.status == .enabled else {
             throw NSError(domain: "CodexUsage.Login", code: 1, userInfo: [NSLocalizedDescriptionKey:
-                "Approve Codex-Usage in System Settings → General → Login Items, then retry."])
+                "Approve Codex Deck in System Settings → General → Login Items, then retry."])
         }
         print("Launch at Login enabled")
         exit(0)
@@ -233,7 +233,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoLaunch.isEnabled = directSetup.port != 0
         autoLaunch.toolTip = "Open Codex with direct switching when the companion starts. Running Codex sessions are never restarted automatically."
         menu.addItem(.separator())
-        add(menu, "Quit Codex-Usage", #selector(quit))
+        add(menu, "Quit Codex Deck", #selector(quit))
         return menu
     }
 
@@ -411,7 +411,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             else { try SMAppService.mainApp.register() }
             render()
         } catch {
-            showAlert("Could not update Launch at Login", "Move Codex-Usage.app to /Applications, then try again. \(error.localizedDescription)")
+            showAlert("Could not update Launch at Login", "Move Codex Deck.app to /Applications, then try again. \(error.localizedDescription)")
         }
     }
 

@@ -47,7 +47,7 @@ final class DirectSwitchSetup {
         if window == nil {
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 470, height: 240),
                                   styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            window.title = "Codex-Usage · Direct Switching"
+            window.title = "Codex Deck · Direct Switching"
             window.isReleasedWhenClosed = false
             let label = NSTextField(wrappingLabelWithString: "Codex를 한 번 재시작하면 모델과 추론 강도를 바로 변경할 수 있습니다.\n\n작업을 마친 뒤 아래 버튼을 누르세요. 이후 보조 앱 시작 시 Codex도 연결 모드로 자동 실행됩니다. 메뉴에서 끌 수 있으며, 연결은 이 Mac에서만 사용합니다.")
             label.frame = NSRect(x: 24, y: 82, width: 422, height: 132)

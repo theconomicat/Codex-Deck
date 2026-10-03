@@ -1,6 +1,6 @@
 # Security
 
-Codex-Usage reads local usage events from `~/.codex/sessions/**/*.jsonl` and
+Codex Deck reads local usage events from `~/.codex/sessions/**/*.jsonl` and
 `~/.codex/archived_sessions/**/*.jsonl`. It does not read `auth.json`, browser
 cookie stores, Keychain items, or API keys. It sends no telemetry or requests to
 an Internet service. Usage checks read local files; direct switching uses

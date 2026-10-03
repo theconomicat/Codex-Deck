@@ -38,7 +38,7 @@ final class WebDeckController {
     private func buildWindow() {
         let panel = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 540, height: 550),
                              styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        panel.title = "Codex-Usage · Web Deck"
+        panel.title = "Codex Deck · Web Deck"
         panel.isReleasedWhenClosed = false
         let heading = NSTextField(labelWithString: "Your phone. Your control deck.")
         heading.font = .systemFont(ofSize: 22, weight: .semibold)

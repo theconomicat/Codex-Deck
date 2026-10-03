@@ -11,7 +11,7 @@ public final class ModelSwitcher {
     public func apply(_ preset: ModelPreset) async throws {
         guard !busy else { throw SwitchError.message("A model change is already in progress.") }
         guard AXIsProcessTrusted() else {
-            throw SwitchError.message("Enable Codex-Usage in System Settings → Privacy & Security → Accessibility, then retry.")
+            throw SwitchError.message("Enable Codex Deck in System Settings → Privacy & Security → Accessibility, then retry.")
         }
         guard let app = NSWorkspace.shared.frontmostApplication,
               app.bundleIdentifier == "com.openai.codex" else {

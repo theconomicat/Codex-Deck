@@ -1,4 +1,4 @@
-# Codex-Usage
+# Codex Deck
 
 <!-- impeccable:product-schema 1 -->
 
@@ -10,7 +10,7 @@ This record covers the mobile web remote added to the existing native macOS menu
 
 ## Users and purpose
 
-Codex users control the Mac’s active saved chat from a phone or tablet on the same Wi-Fi. The remote combines the five model presets with a live model selector and horizontal effort slider, Mac dictation, and scoped responses to pending approvals and user-input questions. The phone is a compact control surface rather than a general chat client.
+Codex users control the Mac’s active saved chat from a phone or tablet on the same Wi-Fi. The remote combines the five model presets with an inline model catalog and horizontal effort slider, Mac dictation, and scoped responses to pending approvals and user-input questions. The phone is a compact control surface rather than a general chat client.
 
 ## Operating context
 
@@ -31,3 +31,5 @@ The native companion remains the host and source of presets and usage. A browser
 ## Working assumptions
 
 The user's Stream Deck reference sets a compact button-grid interaction, and their white Codex Micro photo sets the visual direction: pale square keycaps with recessed circular faces, light gray framing, soft bevels, visible thickness, and charcoal labels and icons. Five model keys and one circular usage tile form a centered 3 × 2 grid in landscape or 2 × 3 grid in portrait. The keys use the largest square size that fits alongside the effort bar and compact model/mic/request dock. In landscape the dock sits to the right of the keys and the slider spans the bottom; portrait keeps the slider and dock below the keys. The ring displays a percentage without a remaining caption. Keep English interface labels and physical press feedback without a persistent header, explanation, or extra branding. The native macOS menu retains its platform styling. Micro-style interactions are implemented through the existing direct bridge; no physical Micro, HID emulation, or feature-gate overrides are part of the product.
+
+The Models button replaces preset keys with model-name buttons and becomes Presets to return. No sets or arbitrary Mac shortcuts. Returning changes only the view. The slider stays visible in both views; model selection preserves the current effort when supported, otherwise High or the first supported effort.

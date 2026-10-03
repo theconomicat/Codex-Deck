@@ -59,7 +59,7 @@ public actor DirectModelSwitcher {
         let packagedBundle = Bundle.main.url(forResource: "Codex-Usage_CodexUsageAutomation", withExtension: "bundle")
             .flatMap { Bundle(url: $0) }
         guard let url = (packagedBundle ?? Bundle.module).url(forResource: "apply-preset", withExtension: "js") else {
-            throw DirectSwitchError.message("The direct switching resource is missing. Reinstall Codex-Usage.")
+            throw DirectSwitchError.message("The direct switching resource is missing. Reinstall Codex Deck.")
         }
         return try String(contentsOf: url, encoding: .utf8)
     }
@@ -137,7 +137,7 @@ public actor DirectModelSwitcher {
                 throw DirectSwitchError.message("The direct bridge returned an unexpected response.")
             }
         } catch {
-            throw DirectSwitchError.message("Open Codex-Usage → Enable Direct Switching to restart Codex with its local bridge. \(error.localizedDescription)")
+            throw DirectSwitchError.message("Open Codex Deck → Enable Direct Switching to restart Codex with its local bridge. \(error.localizedDescription)")
         }
         let target = try DebugTarget.mainWindow(in: JSONDecoder().decode([DebugTarget].self, from: data))
         guard let address = target.webSocketDebuggerUrl, let socketURL = URL(string: address),

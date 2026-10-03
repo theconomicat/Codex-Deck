@@ -1,6 +1,7 @@
 .build/
 .swiftpm/
 Codex-Usage.app/
+Codex Deck.app/
 Assets/AppIcon.iconset/
 work/
 outputs/
