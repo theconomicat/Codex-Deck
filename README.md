@@ -1,11 +1,25 @@
 # Codex Deck
 
-An open-source Codex controller for your phone or tablet, with a macOS menu bar companion. Previously named Codex-Usage.
+**English · [한국어 README 바로 보기 →](README.ko.md)**
 
-[한국어 사용 설명서](README.ko.md)
+**Save your model and reasoning presets. Switch with a shortcut or a tap. See your Codex usage at a glance.**
 
-A macOS menu bar companion for **remaining Codex quota**, **model preset shortcuts**, and a **phone Web Deck**.
-Change the current chat's model and reasoning effort together without opening the model picker. Use five preset keys or an inline model catalog and horizontal effort slider in your phone's browser on the same Wi-Fi. Start Mac dictation, review a waiting permission request, or answer Codex's current question from the same deck. No Stream Deck hardware is required.
+Codex Deck is an open-source macOS companion for Codex. Set up the model and reasoning level you use together—such as Astra Ultra or Sol High—then apply the combination to your current chat in one action. Use keyboard shortcuts on your Mac or turn your existing phone or tablet into a deck on the same Wi-Fi. Previously named Codex-Usage.
+
+## Why I built it
+
+I wanted to see my remaining Codex usage without digging through menus. Switching models and reasoning levels also meant moving the mouse, opening the picker, and clicking through options over and over. Those small interruptions added up during everyday work.
+
+I built Codex Deck to keep my favorite combinations ready and switch them instantly from a shortcut or my phone. I also wanted a software alternative to the controls I would use on OpenAI's Codex Micro, using a phone I already own without buying dedicated hardware. This is an independent open-source companion, not an official OpenAI product or a complete replacement for every Micro feature.
+
+## What it does
+
+- **Model + reasoning presets:** save five frequently used combinations in editable JSON. Each preset applies both values together.
+- **Mac keyboard shortcuts:** press `⌘⌃1`–`⌘⌃5` while Codex is in front to switch the current chat without opening its model picker.
+- **Phone or tablet deck:** tap the same presets from a paired browser on your Wi-Fi. Use portrait or landscape, a model catalog, and a horizontal reasoning slider. No Codex Micro or Stream Deck hardware is needed.
+- **Usage at a glance:** see remaining quota in the macOS menu bar and as a percentage ring on the deck.
+
+The deck also supports Mac dictation and responses to the active chat's supported pending questions or approval requests. [See the control guide](docs/codex-micro.md).
 
 ## Preview
 
@@ -33,7 +47,7 @@ User-provided screenshot of a weekly-only account: the green ring shows 94% rema
 
 <img src="docs/web-deck-questions.png" alt="A pending question with selectable answers and a request-specific text field" width="500" />
 
-Version 0.9.2, rendered with synthetic offline fixture data. These landscape, portrait, model catalog, slider, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
+Version 0.9.4, rendered with synthetic offline fixture data. These landscape, portrait, model catalog, slider, and question previews illustrate the interface; they are not photos of a phone controlling live Codex. The recording state, requests, and quota in these examples are simulated.
 
 ---
 
@@ -126,6 +140,8 @@ Turn off **Open Codex Automatically** to start only the usage companion. Turning
 
 White keys have a recessed face, gray raised edge, short press effect, and an always-enabled click from a bundled audio file; there is no sound toggle. A supported-device vibration accompanies the press. Playback starts from your tap and does not run continuously. The page cannot override device volume, hardware mute, or browser audio restrictions. If you hear nothing, check the media volume and browser sound settings. Reduced-motion preferences disable key movement; unsupported sound, vibration, or fullscreen does not block the controls.
 
+Preset keys show the **model family prominently** and the **reasoning level beneath it**: `Astra / Ultra`, `Astra / Extra High`, `Astra / High`, `Sol / Extra High`, and `Sol / High`. There are no printed slot numbers or inactive indicator dots; only the selected key shows its small indicator. Full model names remain in **Models**, the slider, tooltips, and accessible labels. If your presets contain different versions of the same family, the keys include the version (`Sol 6`, `Sol 6.1`). Custom model names are preserved. These shorter labels do not change saved IDs, efforts, or keyboard mappings.
+
 The 0.9.1 tone has a soft attack and a rounded 180 ms tail. Rapid button presses can overlap briefly instead of cutting off the previous tone; the slider plays once on release rather than at every crossed step. The original sound can be regenerated with `python3 Scripts/generate_feedback_sound.py`.
 
 The sixth tile shows **remaining quota as a percentage only** inside its ring, with no “remaining” label underneath. It prioritizes the weekly window (otherwise the first available window). Tap **Usage** for full usage details and reset information. Missing or expired quota, or a lost connection, displays **—**. Connection and error notices appear only when needed.
@@ -152,7 +168,7 @@ If the active chat, preset, model catalog, or waiting request changes before an 
 
 Selections appear immediately as pending. A confirmed response keeps the same key and slider position, without briefly repainting the old selection. Dragging is continuous and release selects the nearest supported level. You can keep adjusting while a change is in progress: only the most recent trailing value is sent after the current request. A failure drops queued input and restores the last confirmed state; changing chats during a drag cancels that gesture.
 
-Use the **slider directly on the deck** to change the current model's effort. Tap **1 · Astra Ultra**, then slide to **High** and release: the chat becomes **Astra High**, without opening a dialog or changing the model. The bar follows every confirmed preset selection and exposes only that model's supported levels. Arrow keys move one level, and Home/End move to the minimum/maximum. The Mac confirms the result before the deck shows success.
+Use the **slider directly on the deck** to change the current model's effort. Tap **Astra / Ultra**, then slide to **High** and release: the chat becomes **Astra High**, without opening a dialog or changing the model. The bar follows every confirmed preset selection and exposes only that model's supported levels. Arrow keys move one level, and Home/End move to the minimum/maximum. The Mac confirms the result before the deck shows success.
 
 Tap **Models** to replace the preset keys with the active Codex composer’s model catalog. These keys show model names only. Tap a model to apply it; the current effort is preserved when supported, otherwise High is used (or the model’s first supported level). The slider follows the confirmed model.
 
@@ -328,6 +344,8 @@ Version 0.7.0 added six tactile keys and landscape/fullscreen support. Version *
 Version **0.8.2** replaces the rotary dial with a horizontal volume-style effort slider. Drag/release, touch, keyboard input, and five viewport sizes were checked in an offline browser.
 Version **0.9.0** renames the app to Codex Deck and adds an inline **Models / Presets** view switch. The model keys show names only; selecting one keeps a supported effort. Browser fixtures verify view switching, model selection, slider behavior, and disconnected states.
 Version **0.9.1** adds a softer original key tone, immediate pending selection, continuous slider movement, and a single latest-value effort queue. Successful model writes use the host-verified acknowledgement immediately and resume normal polling, eliminating the extra old-state repaint and read. Slow-response, failure, target-change, and keyboard cases were checked with isolated fixtures.
+
+Version **0.9.4** simplifies preset faces to a prominent model family and smaller reasoning level, removes slot numbers and inactive dots, and keeps version labels when needed to distinguish presets. Pointer/touch slider focus has no enclosing outline; keyboard focus remains visible. The English and Korean guides now explain the preset workflow and the motivation behind the project.
 
 Version **0.9.2** widens the frame and maps its five colors to identity-scoped native chat status, with a neutral fallback when status is unavailable. The bridge, typed payload, and responsive browser states were checked with isolated fixtures; live Codex status and physical-phone behavior were not agent-verified.
 Version **0.8.3** puts the effort slider directly on the deck. Selecting a preset synchronizes the bar; moving it preserves the active model and changes only its effort. The Astra Ultra → High and Sol Extra High → High flows were verified with offline fixtures.

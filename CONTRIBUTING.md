@@ -54,3 +54,7 @@ Record whether live verification was performed by a tester or reported by a user
 If a development tool blocks Codex access, do not bypass that boundary through
 another transport. User confirmation of 0.3.1 is recorded in the compatibility notes;
 it does not mean later changes or every failure scenario were manually tested.
+
+## Version increments
+
+For the current development series, increment only the patch component by default: `0.9.3` → `0.9.4` → `0.9.5`. Do not change the minor version unless the maintainer explicitly requests it. Update `CFBundleShortVersionString` in `Scripts/package_app.sh` and increment the integer `CFBundleVersion` separately. A version bump or push does not itself publish a release; release tags are a separate action.

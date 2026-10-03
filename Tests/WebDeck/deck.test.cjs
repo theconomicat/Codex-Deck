@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { deckActivity, DeckController, consumePairingToken, isPresetSelected, usagePercent, POLL_INTERVAL } = require('../../Sources/CodexUsageWeb/Resources/deck.js');
+const { presetModelLabels, deckActivity, DeckController, consumePairingToken, isPresetSelected, usagePercent, POLL_INTERVAL } = require('../../Sources/CodexUsageWeb/Resources/deck.js');
 
 const preset = { slot: 1, model: 'gpt-6-astra', effort: 'ultra', title: 'GPT-6 Astra · Ultra' };
 function snapshot(overrides = {}) {
@@ -455,4 +455,26 @@ test('pending questions and Mac-only approvals keep the frame amber', () => {
   for (const overrides of [{ pending: [{ kind: 'question' }] }, { pendingUnavailable: 'Answer in Codex' }]) {
     assert.equal(deckActivity({ phase: 'ready', snapshot: snapshot({ activity: 'thinking', ...overrides }) }), 'requires-input');
   }
+});
+
+
+test('preset faces shorten known families without changing configuration or hiding effort', () => {
+  const presets = [
+    { model: 'GPT-6 Astra', effort: 'ultra' }, { model: 'gpt-6-astra', effort: 'high' },
+    { model: 'gpt-6.1-sol', effort: 'xhigh' }
+  ];
+  const before = JSON.stringify(presets);
+  assert.deepEqual(presetModelLabels(presets), [
+    { full: 'GPT-6 Astra', short: 'Astra' }, { full: 'GPT-6 Astra', short: 'Astra' },
+    { full: 'GPT-6.1 Sol', short: 'Sol' }
+  ]);
+  assert.equal(JSON.stringify(presets), before);
+});
+test('same family with different versions stays distinguishable on preset keys', () => {
+  assert.deepEqual(presetModelLabels([{ model: 'gpt-6-sol' }, { model: 'GPT-6.1 Sol' }, { model: 'GPT-6.1 Sol' }]).map(x => x.short), ['Sol 6', 'Sol 6.1', 'Sol 6.1']);
+});
+test('catalog aliases resolve to full display names while custom models keep their names', () => {
+  const labels = presetModelLabels([{ model: 'provider:astra' }, { model: 'My Custom Model' }, { model: 'gpt-5.5' }],
+    [{ id: 'provider:astra', name: 'GPT-6 Astra' }]);
+  assert.deepEqual(labels, [{ full: 'GPT-6 Astra', short: 'Astra' }, { full: 'My Custom Model', short: 'My Custom Model' }, { full: 'GPT-5.5', short: 'GPT-5.5' }]);
 });

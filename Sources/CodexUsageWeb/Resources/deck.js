@@ -16,6 +16,19 @@
     return String(model || "Model").replace(/^gpt-/i, "GPT-").replace(/-(astra|sol|luna|terra)$/i, (_, name) => " " + name[0].toUpperCase() + name.slice(1));
   }
 
+  function presetModelLabels(presets, models = []) {
+    const names = presets.map(preset => {
+      const model = models.find(item => [item.id, item.name].some(value => modelIdentity(value) === modelIdentity(preset.model)));
+      const full = modelLabel(model?.name || preset.model);
+      const match = /^GPT[- ](\d+(?:\.\d+)?) (Astra|Sol|Luna|Terra)$/i.exec(full);
+      return { full, version: match?.[1], family: match?.[2] };
+    });
+    return names.map(name => {
+      const ambiguous = name.family && names.some(other => other.family?.toLowerCase() === name.family.toLowerCase() && other.version !== name.version);
+      return { full: name.full, short: name.family ? name.family + (ambiguous ? ` ${name.version}` : "") : name.full };
+    });
+  }
+
   // Match PickerLabels.modelKey for read-only selected-state display.
   function modelIdentity(model) {
     return String(model || "").toLowerCase().replace(/[^\p{L}\p{N}]/gu, "").replace(/^gpt/, "");
@@ -615,21 +628,21 @@
       byID("notice-text").textContent = message || "";
       byID("feedback").textContent = feedback?.message || message || "";
       const presets = (snapshot?.presets || []).slice(0, 5);
-      const signature = JSON.stringify(presets);
+      const labels = presetModelLabels(presets, models);
+      const signature = JSON.stringify([presets, labels]);
       if (signature !== presetSignature) {
         presetSignature = signature;
-        keys = presets.map(preset => {
+        keys = presets.map((preset, index) => {
           const button = element("button", "deck-key model-key");
           button.type = "button";
-          const top = element("span", "key-top");
           const status = element("span", "sr-only");
           const led = element("span", "key-led");
           led.setAttribute("aria-hidden", "true");
-          top.append(element("span", "key-number", String(preset.slot).padStart(2, "0")), led, status);
-          const name = modelLabel(preset.model);
+          const name = labels[index];
           const effort = effortLabels[preset.effort] || preset.effort;
-          button.append(top, element("span", "key-model", name), element("span", "key-effort", effort));
-          button.setAttribute("aria-label", `${preset.slot}: ${preset.title || `${name}, ${effort}`}`);
+          button.append(led, status, element("span", "key-model", name.short), element("span", "key-effort", effort));
+          button.setAttribute("aria-label", `${preset.slot}: ${name.full}, ${effort}`);
+          button.title = `${preset.title || `${name.full} · ${effort}`} (⌘⌃${preset.slot})`;
           button.addEventListener("click", () => void controller.applyPreset(preset));
           return { button, status, preset };
         });
@@ -729,7 +742,7 @@
   }
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { deckActivity, modelEffort, validControl, pressFeedback, DeckController, consumePairingToken, modelLabel, isPresetSelected, usagePercent, POLL_INTERVAL };
+    module.exports = { presetModelLabels, deckActivity, modelEffort, validControl, pressFeedback, DeckController, consumePairingToken, modelLabel, isPresetSelected, usagePercent, POLL_INTERVAL };
   } else {
     const token = consumePairingToken(window.location, window.history);
     let render = () => {};

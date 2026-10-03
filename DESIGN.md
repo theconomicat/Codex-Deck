@@ -37,13 +37,14 @@ typography:
     fontSize: "1.2rem"
     fontWeight: 600
   key-model:
-    fontSize: "clamp(.6875rem, 9cqw, 1.125rem)"
-    lineHeight: 1.35
-  key-effort:
     fontSize: "clamp(1rem, 15cqw, 2.125rem)"
     fontWeight: 650
     lineHeight: 1.15
-    letterSpacing: "-.035em"
+    letterSpacing: "-.025em"
+  key-effort:
+    fontSize: "clamp(.75rem, 9cqw, 1.0625rem)"
+    fontWeight: 450
+    lineHeight: 1.3
   usage:
     fontSize: "clamp(1rem, 19cqw, 2.75rem)"
     fontWeight: 600
@@ -100,7 +101,7 @@ components:
 
 The user's white Codex Micro photo sets the material direction: pale square keycaps, shallow dished faces, softly beveled edges, and visible key thickness on a cool gray board. Charcoal labels and icons stay clear against the light surfaces. Depth communicates pressable controls without adding branding or a persistent header.
 
-Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.9.2 web surface; its stylesheet remains the implementation source.
+Scope: `Sources/CodexUsageWeb/Resources/`. The native AppKit menu retains its platform styling. These tokens describe the implemented 0.9.4 web surface; its stylesheet remains the implementation source.
 
 **Key Characteristics:**
 - Square white keys with recessed circular faces.
@@ -114,7 +115,7 @@ Cool white and gray establish the hardware material; dark green identifies selec
 
 ## Typography
 
-Use the native system UI stack, with rem sizes for dialogs, forms, and dock controls. Key model, effort, and usage type scale within each key's container, bounded by rem minimums and maximums. Effort is the dominant label, with the model above it. Use tabular numerals for key numbers and percentages. No external font assets.
+Use the native system UI stack, with rem sizes for dialogs, forms, and dock controls. Key model, effort, and usage type scale within each key's container, bounded by rem minimums and maximums. The model family is the dominant label, with the reasoning effort below it. Use tabular numerals for key numbers and percentages. No external font assets.
 
 ## Layout
 
@@ -132,7 +133,7 @@ Keys retain a square silhouette with softly rounded corners. Each dished face is
 
 ## Components
 
-- **Preset keys:** model above effort, small key number and indicator at the top. Confirmed selection changes the recess, label, border, and LED; pending uses amber. Preserve selected, busy, disabled, and focus states. Never show success before host confirmation.
+- **Preset keys:** prominent model family above smaller effort, with a small indicator only for the selected key. No printed slot number. Confirmed selection changes the recess, label, border, and LED; pending uses amber. Preserve selected, busy, disabled, and focus states. Never show success before host confirmation.
 - **Usage key:** a circular track with the percentage only; no “remaining” caption. Unknown, expired, or offline data uses an em dash. Opens the native dialog for the active chat, usage details, fullscreen, refresh, and disconnect.
 - **Model controls:** an inline catalog of model-name keys toggled by Models / Presets and an always-visible horizontal range input directly on the deck, labeled with the active model and effort. Keep native touch and keyboard semantics. Preset confirmation synchronizes the slider. Pointer movement previews and release changes only the active model’s effort; saved presets remain unchanged. Choosing a different model applies a supported effort.
 - **Dock and requests:** Model, Mac mic, and a Requests control only when supported requests are waiting. Recording has an explicit red state. Request dialogs show relevant options and text fields with clear Allow once/Deny treatments.
@@ -154,3 +155,5 @@ The model catalog occupies the preset grid’s existing footprint with two colum
 In 0.9.2 the outer frame is `clamp(22px, 4vmin, 38px)` wide, with a separate `clamp(12px, 2vmin, 20px)` inner pad. Short landscape uses 18px + 10px. The frame carries the native chat status: white idle, pale green unread completion, pale blue thinking, peach input required, and red chat error. Unknown/offline is gray. The inset panel and white keys retain their materials. Change color without animation or extra polling, and expose the same status in Usage and a screen-reader live region.
 
 The effort range has no enclosing border, focus outline, or tap highlight during pointer/touch use, including after release. Only keyboard focus receives the existing focus outline. Preserve the thumb's physical edge and the track's recessed material.
+
+In 0.9.4, the five preset labels use Astra / Ultra, Astra / Extra High, Astra / High, Sol / Extra High, and Sol / High. Keep full display names in the catalog, slider, title and accessible name. For same-family version collisions use labels such as Sol 6 and Sol 6.1; do not abbreviate custom model names. Long custom names clamp visually to two lines while the full identity remains accessible. The primary model label uses ink / selected-ink, and the smaller effort uses secondary / selected-secondary.

@@ -8,7 +8,7 @@ For installation, pairing, and JSON preset editing, use the [English README](../
 
 | Control | How to use it | Scope |
 | --- | --- | --- |
-| Five model keys | Tap a key; wait for the confirmed selection. | Applies the corresponding `presets.json` model and effort to the active saved chat. |
+| Five model keys | Read the model family above its reasoning level. Tap a key; wait for the confirmed selection. | Applies the corresponding `presets.json` model and effort to the active saved chat. |
 | Usage | Read the percentage in the ring; tap for details, refresh, fullscreen, or disconnect. | Remaining quota, preferring the weekly window. Missing/expired/offline data is `—`. |
 | Effort slider | Drag the bar directly on the deck, then release. | Keeps the current model, changing only its effort. For example: preset 1 Astra Ultra → slider High = Astra High. Saved presets stay unchanged. |
 | Models / Presets | Toggle between model-name keys and the five saved presets. Tap a model to apply it. | Keeps a supported current effort, falling back to High or the first supported level. Returning to Presets changes only the view. |
