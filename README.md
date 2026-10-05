@@ -17,6 +17,17 @@ A free, open-source macOS companion. Save model + reasoning presets, switch from
 - **Phone controls:** same-Wi-Fi access, a model picker, and a reasoning slider. Mac dictation and supported questions/approvals are also available.
 - **Usage:** remaining quota in the deck and your Mac menu bar.
 
+## On your Mac
+
+See remaining usage in the menu bar. Open the menu for model presets, settings, and automatic startup.
+
+<p align="center">
+<img src="docs/menu-bar-preview.png" alt="Codex Deck menu bar ring showing 94 percent remaining" width="185" /><br />
+<img src="docs/app-menu.png" alt="Mac menu showing remaining usage, five model shortcuts, preset settings, and startup options" width="360" />
+</p>
+
+<sub>Earlier menu capture. In the current app, JSON opens directly through Edit Button Settings….</sub>
+
 ## Get started
 
 Requires **macOS 13+**, the signed-in **Codex desktop app**, and **Swift 6** via Xcode or Command Line Tools. Build the current deck from source; older release downloads do not include these controls.

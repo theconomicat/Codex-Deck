@@ -17,6 +17,17 @@
 - **휴대폰 조작:** 같은 Wi-Fi에서 모델 선택과 추론 수준 조절. Mac 받아쓰기와 지원되는 질문·승인 응답도 가능합니다.
 - **사용량 확인:** 덱과 Mac 메뉴 막대에서 남은 비율을 확인합니다.
 
+## Mac에서도 한눈에
+
+메뉴 막대에서 남은 사용량을 확인하고, 메뉴를 열어 모델 프리셋·설정·자동 실행을 관리하세요.
+
+<p align="center">
+<img src="docs/menu-bar-preview.png" alt="남은 사용량 94퍼센트를 표시하는 Codex Deck 메뉴 막대" width="185" /><br />
+<img src="docs/app-menu.png" alt="남은 사용량, 모델 단축키 다섯 개, 프리셋 설정과 자동 실행 옵션이 있는 Mac 메뉴" width="360" />
+</p>
+
+<sub>메뉴는 이전 버전 캡처입니다. 현재 앱에서는 Edit Button Settings…로 JSON을 바로 엽니다.</sub>
+
 ## 시작하기
 
 **macOS 13+**, 로그인한 **Codex 데스크톱 앱**, Xcode 또는 Command Line Tools의 **Swift 6**가 필요합니다. 현재 덱은 아래 소스 빌드로 설치하세요. 이전 릴리스 다운로드에는 이 조작 기능이 없습니다.
