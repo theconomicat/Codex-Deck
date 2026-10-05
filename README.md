@@ -6,12 +6,21 @@
 
 A free, open-source macOS companion. Save model + reasoning presets, switch from your keyboard or phone, and see remaining usage at a glance.
 
+[![Watch the Codex Deck film: landscape and portrait phone controls](docs/media/codex-deck-intro-poster.jpg)](https://github.com/theconomicat/Codex-Usage/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)
+
+**[Watch the 33-second intro →](https://github.com/theconomicat/Codex-Usage/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)** · English narration · [Captions](docs/media/codex-deck-intro.en.srt)
+
+<details>
+<summary>Phone layouts</summary>
+
 <p align="center">
 <img src="docs/images/codex-deck-phone.png" alt="Codex Deck in a landscape phone mockup, with five model presets, a usage ring, and a reasoning slider" width="76%" />
 <img src="docs/images/codex-deck-phone-portrait.png" alt="Codex Deck in a portrait phone mockup with a two-column grid and reasoning slider" width="16%" />
 </p>
 
 <sub>Illustrative phone mockups based on the app's offline preview; sample usage.</sub>
+
+</details>
 
 - **Quick switching:** five presets on `⌘⌃1–5`, shared with the phone deck.
 - **Phone controls:** same-Wi-Fi access, a model picker, and a reasoning slider. Mac dictation and supported questions/approvals are also available.

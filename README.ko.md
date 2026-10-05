@@ -6,12 +6,21 @@
 
 모델과 추론 수준을 미리 저장하고, 키보드나 휴대폰에서 바로 전환하세요. 남은 사용량도 한눈에 확인하는 무료 macOS 오픈소스 보조 도구입니다.
 
+[![Codex Deck 소개 영상: 가로·세로 휴대폰 덱](docs/media/codex-deck-intro-poster.jpg)](https://github.com/theconomicat/Codex-Usage/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)
+
+**[33초 소개 영상 보기 →](https://github.com/theconomicat/Codex-Usage/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)** · 영어 내레이션 · [영어 자막](docs/media/codex-deck-intro.en.srt)
+
+<details>
+<summary>휴대폰 가로·세로 화면</summary>
+
 <p align="center">
 <img src="docs/images/codex-deck-phone.png" alt="가로 휴대폰 목업 안의 Codex Deck: 모델 프리셋 5개, 사용량 게이지, 추론 수준 슬라이더" width="76%" />
 <img src="docs/images/codex-deck-phone-portrait.png" alt="세로 휴대폰 목업 안의 Codex Deck: 2열 버튼 배치와 추론 수준 슬라이더" width="16%" />
 </p>
 
 <sub>앱의 오프라인 예시 화면으로 만든 휴대폰 목업입니다. 사용량은 예시입니다.</sub>
+
+</details>
 
 - **빠른 전환:** `⌘⌃1–5`와 휴대폰 덱에서 같은 프리셋을 사용합니다.
 - **휴대폰 조작:** 같은 Wi-Fi에서 모델 선택과 추론 수준 조절. Mac 받아쓰기와 지원되는 질문·승인 응답도 가능합니다.
