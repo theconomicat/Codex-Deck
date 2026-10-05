@@ -6,9 +6,9 @@
 
 모델과 추론 수준을 미리 저장하고, 키보드나 휴대폰에서 바로 전환하세요. 남은 사용량도 한눈에 확인하는 무료 macOS 오픈소스 보조 도구입니다.
 
-[![Codex Deck 소개 영상: 가로·세로 휴대폰 덱](docs/media/codex-deck-intro-poster.jpg)](https://github.com/theconomicat/Codex-Deck/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)
+https://github.com/user-attachments/assets/98d5621c-7153-48da-b093-a013426bc9e0
 
-**[33초 소개 영상 보기 →](https://github.com/theconomicat/Codex-Deck/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)** · 영어 내레이션 · [영어 자막](docs/media/codex-deck-intro.en.srt)
+33초 · 영어 내레이션은 소리를 켜주세요 · [MP4 다운로드](https://github.com/theconomicat/Codex-Deck/raw/refs/heads/main/docs/media/codex-deck-intro.mp4) · [영어 자막](docs/media/codex-deck-intro.en.srt)
 
 <details>
 <summary>휴대폰 가로·세로 화면</summary>

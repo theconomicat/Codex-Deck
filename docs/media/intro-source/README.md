@@ -38,3 +38,11 @@ ffmpeg -y -i soundtrack.wav -af loudnorm=I=-16:TP=-1.5:LRA=9 \
 - This is an independent Codex Deck introduction. It does not use OpenAI branding to claim official affiliation or present the edited sequence as live integration footage.
 
 The application version is unchanged by this media update.
+
+## GitHub README playback
+
+Both READMEs use the permanent GitHub attachment URL below as a standalone paragraph, which GitHub renders as a native video player. GitHub starts the player muted; the README caption prompts viewers to unmute. The repository MP4 remains available as a download.
+
+https://github.com/user-attachments/assets/98d5621c-7153-48da-b093-a013426bc9e0
+
+If the film changes, upload the new MP4 as a GitHub media attachment and replace this URL in both READMEs. Updating the repository file alone does not update the attachment.

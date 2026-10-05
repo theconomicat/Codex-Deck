@@ -6,9 +6,9 @@
 
 A free, open-source macOS companion. Save model + reasoning presets, switch from your keyboard or phone, and see remaining usage at a glance.
 
-[![Watch the Codex Deck film: landscape and portrait phone controls](docs/media/codex-deck-intro-poster.jpg)](https://github.com/theconomicat/Codex-Deck/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)
+https://github.com/user-attachments/assets/98d5621c-7153-48da-b093-a013426bc9e0
 
-**[Watch the 33-second intro →](https://github.com/theconomicat/Codex-Deck/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)** · English narration · [Captions](docs/media/codex-deck-intro.en.srt)
+33 seconds · English narration (unmute) · [Download MP4](https://github.com/theconomicat/Codex-Deck/raw/refs/heads/main/docs/media/codex-deck-intro.mp4) · [Captions](docs/media/codex-deck-intro.en.srt)
 
 <details>
 <summary>Phone layouts</summary>
