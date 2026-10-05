@@ -6,9 +6,9 @@
 
 모델과 추론 수준을 미리 저장하고, 키보드나 휴대폰에서 바로 전환하세요. 남은 사용량도 한눈에 확인하는 무료 macOS 오픈소스 보조 도구입니다.
 
-[![Codex Deck 소개 영상: 가로·세로 휴대폰 덱](docs/media/codex-deck-intro-poster.jpg)](https://github.com/theconomicat/Codex-Usage/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)
+[![Codex Deck 소개 영상: 가로·세로 휴대폰 덱](docs/media/codex-deck-intro-poster.jpg)](https://github.com/theconomicat/Codex-Deck/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)
 
-**[33초 소개 영상 보기 →](https://github.com/theconomicat/Codex-Usage/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)** · 영어 내레이션 · [영어 자막](docs/media/codex-deck-intro.en.srt)
+**[33초 소개 영상 보기 →](https://github.com/theconomicat/Codex-Deck/raw/refs/heads/main/docs/media/codex-deck-intro.mp4)** · 영어 내레이션 · [영어 자막](docs/media/codex-deck-intro.en.srt)
 
 <details>
 <summary>휴대폰 가로·세로 화면</summary>
@@ -42,8 +42,8 @@
 **macOS 13+**, 로그인한 **Codex 데스크톱 앱**, Xcode 또는 Command Line Tools의 **Swift 6**가 필요합니다. 현재 덱은 아래 소스 빌드로 설치하세요. 이전 릴리스 다운로드에는 이 조작 기능이 없습니다.
 
 ```bash
-git clone https://github.com/theconomicat/Codex-Usage.git
-cd Codex-Usage
+git clone https://github.com/theconomicat/Codex-Deck.git
+cd Codex-Deck
 ./Scripts/package_app.sh
 ```
 
