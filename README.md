@@ -39,7 +39,14 @@ See remaining usage in the menu bar. Open the menu for model presets, settings, 
 
 ## Get started
 
-Requires **macOS 13+**, the signed-in **Codex desktop app**, and **Swift 6** via Xcode or Command Line Tools. Build the current deck from source; older release downloads do not include these controls.
+Requires **macOS 13+** and the signed-in **Codex desktop app**.
+
+**[Download the latest release →](https://github.com/theconomicat/Codex-Deck/releases/latest)** — choose `Codex-Deck-macos.zip` for Apple silicon. No development tools required. The app is ad-hoc signed, not Apple-notarized; see [installation help](docs/guide.md#installation) if macOS blocks it.
+
+<details>
+<summary>Build from source (also for Intel Macs)</summary>
+
+Requires **Swift 6** via Xcode or Command Line Tools and Git.
 
 ```bash
 git clone https://github.com/theconomicat/Codex-Deck.git
@@ -47,11 +54,15 @@ cd Codex-Deck
 ./Scripts/package_app.sh
 ```
 
-1. Move **Codex Deck.app** to `/Applications` and open it. Its icon appears in the menu bar.
+</details>
+
+1. Unzip the download, move **Codex Deck.app** to `/Applications`, and open it. Quit any older copy first. Its icon appears in the menu bar.
 2. Finish running Codex work, then choose **Enable Direct Switching…** and complete setup. **This restarts Codex.**
 3. Open a chat with its composer visible. With Codex in front, press `⌘⌃1` to try a preset.
 
 The usage meter works without direct switching. [Installation help →](docs/guide.md#installation)
+
+Other Codex shortcuts stay available. Only `⌘⌃1–5` are reserved for presets while Codex is in front; quitting Codex Deck releases them. The app does not change Codex's keybinding file. [Shortcut details →](docs/guide.md#keyboard-shortcuts)
 
 ## Use your phone
 

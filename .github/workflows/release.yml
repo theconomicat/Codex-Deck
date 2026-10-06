@@ -26,16 +26,30 @@ jobs:
       - name: Build app
         run: ./Scripts/package_app.sh
 
+      - name: Verify release bundle
+        run: |
+          APP="Codex Deck.app"
+          VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")
+          test "$GITHUB_REF_NAME" = "v$VERSION"
+          test "$(lipo -archs "$APP/Contents/MacOS/CodexUsage")" = "arm64"
+          codesign --verify --deep --strict "$APP"
+          "$APP/Contents/MacOS/CodexUsage" --check-direct-resources
+          "$APP/Contents/MacOS/CodexUsage" --check-web-resources
+          "$APP/Contents/MacOS/CodexUsage" --validate-presets presets.example.json
+
       - name: Package zip
         run: |
           mkdir -p outputs
-          ditto -c -k --norsrc --keepParent Codex-Usage.app outputs/Codex-Usage-macos.zip
+          ditto -c -k --norsrc --keepParent "Codex Deck.app" outputs/Codex-Deck-macos.zip
+          cd outputs
+          shasum -a 256 Codex-Deck-macos.zip > SHA256SUMS.txt
 
       - name: Upload release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${GITHUB_REF_NAME}"
-          gh release create "$TAG" outputs/Codex-Usage-macos.zip \
-            --title "$TAG" \
+          gh release create "$TAG" outputs/Codex-Deck-macos.zip outputs/SHA256SUMS.txt \
+            --verify-tag --latest \
+            --title "Codex Deck $TAG" \
             --generate-notes

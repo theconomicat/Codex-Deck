@@ -4,13 +4,21 @@
 
 ## Installation
 
-Use the build commands in the README for the current deck. Published release downloads currently predate its model and phone controls. Build requirements are macOS 13+, Swift 6, Git, and the installed, signed-in Codex desktop app. Node.js is only needed for development tests.
+On an Apple silicon Mac, download `Codex-Deck-macos.zip` from the [latest release](https://github.com/theconomicat/Codex-Deck/releases/latest) and unzip it. Requires macOS 13+ and the installed, signed-in Codex desktop app. No Swift or Node.js installation is needed. The release includes `SHA256SUMS.txt` for download verification.
 
-Move the generated `Codex Deck.app` into `/Applications`. Quit any old copy first. This is a menu bar app; it does not keep a Dock window open. Local builds are ad-hoc signed, not Apple-notarized. If macOS blocks launch, verify the source and use the app-specific opening option in System Settings → Privacy & Security.
+For Intel Macs or a source build, follow the README build commands with Swift 6 and Git. Node.js is only needed for development tests.
+
+Move `Codex Deck.app` into `/Applications`. Quit any old copy first. This is a menu bar app; it does not keep a Dock window open. Release and local builds are ad-hoc signed, not Apple-notarized. If macOS blocks launch, verify the download/source and use the app-specific opening option in System Settings → Privacy & Security.
 
 **Enable Direct Switching…** opens setup. Finish running work, then use its “Restart Codex · connect direct switching” button. Open one main Codex window with a visible chat composer. A successful preset change briefly shows its name in the menu bar and `Applied:` in the menu. Setup completing alone does not verify a model change.
 
 Shortcuts work only when Codex is in front. Models and reasoning levels must be available to your account. If Codex asks for confirmation, finish it there; an unsupported model or effort is not silently substituted.
+
+## Keyboard shortcuts
+
+Codex Deck reserves only `⌘⌃1–5`, and only while Codex is the foreground app. Those combinations select presets instead of any Codex action assigned to the same keys. Other shortcuts, including `⌃⇧M`, are not intercepted. Switching to another app or quitting Codex Deck releases the five shortcuts.
+
+The app does not edit `~/.codex/keybindings.json`. If you previously added the optional conflict workaround, its `null` entries disable the listed chat, tab, and mode shortcuts even after quitting Codex Deck. Remove only those added entries to restore defaults, preserving your other customizations. Use your configured `CODEX_HOME` if different.
 
 ## Phone connection
 

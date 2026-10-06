@@ -39,7 +39,14 @@ https://github.com/user-attachments/assets/98d5621c-7153-48da-b093-a013426bc9e0
 
 ## 시작하기
 
-**macOS 13+**, 로그인한 **Codex 데스크톱 앱**, Xcode 또는 Command Line Tools의 **Swift 6**가 필요합니다. 현재 덱은 아래 소스 빌드로 설치하세요. 이전 릴리스 다운로드에는 이 조작 기능이 없습니다.
+**macOS 13+**, 로그인한 **Codex 데스크톱 앱**이 필요합니다.
+
+**[최신 릴리스 다운로드 →](https://github.com/theconomicat/Codex-Deck/releases/latest)** — Apple silicon Mac에서는 `Codex-Deck-macos.zip`을 받으세요. 개발 도구는 필요 없습니다. 앱은 임시 서명되며 Apple 공증을 받지 않았습니다. macOS가 실행을 막으면 [설치 도움말](docs/guide.ko.md#설치)을 확인하세요.
+
+<details>
+<summary>소스에서 빌드하기 (Intel Mac 포함)</summary>
+
+Xcode 또는 Command Line Tools의 **Swift 6**와 Git이 필요합니다.
 
 ```bash
 git clone https://github.com/theconomicat/Codex-Deck.git
@@ -47,11 +54,15 @@ cd Codex-Deck
 ./Scripts/package_app.sh
 ```
 
-1. 생성된 **Codex Deck.app**을 `/Applications`로 옮겨 실행합니다. 메뉴 막대에 아이콘이 나타납니다.
+</details>
+
+1. 다운로드한 ZIP을 풀고 **Codex Deck.app**을 `/Applications`로 옮겨 실행합니다. 이전 앱은 먼저 종료하세요. 메뉴 막대에 아이콘이 나타납니다.
 2. Codex의 진행 중인 작업을 마친 뒤, **Enable Direct Switching…**에서 연결합니다. **이 과정에서 Codex가 재시작됩니다.**
 3. 입력창이 보이는 채팅을 열고, Codex가 맨 앞인 상태에서 `⌘⌃1`을 눌러 보세요.
 
 사용량만 볼 때는 직접 전환 연결이 필요 없습니다. [설치 도움말 →](docs/guide.ko.md#설치)
+
+기존 Codex 단축키는 계속 사용할 수 있습니다. Codex가 맨 앞일 때 **`⌘⌃1–5`만** 프리셋용으로 우선 처리하며, Codex Deck을 종료하면 해제됩니다. 앱이 Codex 키 바인딩 파일을 수정하지는 않습니다. [단축키 상세 →](docs/guide.ko.md#키보드-단축키)
 
 ## 휴대폰에서 사용하기
 
