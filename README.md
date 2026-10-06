@@ -72,6 +72,20 @@ Other Codex shortcuts stay available. Only `⌘⌃1–5` are reserved for preset
 
 Tap the percentage ring for usage details and fullscreen. After restarting the companion, start Web Deck and pair again. [Connection help →](docs/guide.md#phone-connection)
 
+### Chat status at a glance
+
+The deck's outer frame changes color to match the selected Codex chat:
+
+| Frame color | Chat status |
+| --- | --- |
+| White | Idle |
+| Light green | Complete, with an unread update |
+| Light blue | Working |
+| Peach | Needs an answer or approval |
+| Red | Chat error |
+
+The visible web page checks about every five seconds. Unknown or disconnected status shows gray. Colors follow chat activity, independently of the selected model or reasoning level. [Color previews and status details →](docs/codex-micro.md#status-frame)
+
 ## Make it yours
 
 Open **Edit Button Settings…** from the Mac menu to edit JSON.
